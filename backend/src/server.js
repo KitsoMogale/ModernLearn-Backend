@@ -21,7 +21,7 @@ app.use(morgan('dev'));
 connectDB();
 
 // Initialize Firebase Admin
-initializeFirebase();
+//initializeFirebase();
 
 // Health check endpoint
 app.get('/health', (req, res) => {
