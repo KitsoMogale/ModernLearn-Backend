@@ -7,17 +7,6 @@ require('dotenv').config();
 const connectDB = require('./config/database');
 const { initializeFirebase } = require('./config/firebase');
 
-// Import routes
-const subjectRoutes = require('./routes/subject.routes');
-const topicRoutes = require('./routes/topic.routes');
-const levelRoutes = require('./routes/level.routes');
-const clusterRoutes = require('./routes/cluster.routes');
-const nodeRoutes = require('./routes/node.routes');
-const questionRoutes = require('./routes/question.routes');
-const userRoutes = require('./routes/user.routes');
-const diagnosticRoutes = require('./routes/diagnostic.routes');
-const learningPathRoutes = require('./routes/learningPath.routes');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,15 +30,14 @@ app.get('/health', (req, res) => {
 
 // API Routes
 const API_VERSION = process.env.API_VERSION || 'v1';
-app.use(`/api/${API_VERSION}/subjects`, subjectRoutes);
-app.use(`/api/${API_VERSION}/topics`, topicRoutes);
-app.use(`/api/${API_VERSION}/levels`, levelRoutes);
-app.use(`/api/${API_VERSION}/clusters`, clusterRoutes);
-app.use(`/api/${API_VERSION}/nodes`, nodeRoutes);
-app.use(`/api/${API_VERSION}/questions`, questionRoutes);
-app.use(`/api/${API_VERSION}/users`, userRoutes);
-app.use(`/api/${API_VERSION}/diagnostic`, diagnosticRoutes);
-app.use(`/api/${API_VERSION}/learning-paths`, learningPathRoutes);
+const sessionRoutes = require('./routes/sessions');
+const remediationRoutes = require('./routes/remediation');
+
+app.use(`/api/sessions`, sessionRoutes);
+app.use(`/api/remediation`, remediationRoutes);
+
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
