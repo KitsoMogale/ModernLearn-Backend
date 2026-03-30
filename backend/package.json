@@ -8,6 +8,7 @@
     "dev": "nodemon src/server.js",
     "seed": "node src/scripts/seedDatabase.js",
     "seed:full": "node src/scripts/seedDatabaseComplete.js",
+    "seed:curriculum": "node src/scripts/seedCurriculum.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

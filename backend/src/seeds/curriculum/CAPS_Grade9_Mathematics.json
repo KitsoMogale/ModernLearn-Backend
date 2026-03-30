@@ -1,0 +1,416 @@
+{
+  "curriculumCode": "CAPS",
+  "meta": {
+    "country": "South Africa",
+    "curriculum": "CAPS",
+    "grade": "Grade 9",
+    "subject": "Mathematics",
+    "notation": [
+      "Use the 'therefore' symbol (∴) before final answers",
+      "Use decimal point (not comma) for decimals",
+      "Fractions in simplest form",
+      "Coordinates written as (x; y) with semicolon"
+    ],
+    "markingStandards": [
+      "Full marks require all working shown",
+      "Answer-only typically earns 1 mark",
+      "Method marks for correct approach",
+      "Consistent accuracy marks apply"
+    ],
+    "terminology": [
+      { "term": "factorise", "note": "South African English — not 'factor'" },
+      { "term": "hence", "note": "Must use your previous answer" },
+      { "term": "show that", "note": "Must prove the given result" }
+    ],
+    "assessmentFormat": "Paper 1: Numbers, Operations and Relationships; Patterns, Functions and Algebra. Paper 2: Space and Shape (Geometry), Measurement, Data Handling (including Probability)."
+  },
+  "topics": [
+    {
+      "topic": "Numbers, Operations and Relationships",
+      "subtopics": [
+        {
+          "name": "Whole Numbers",
+          "skillId": "NUM-WHOLE-G9",
+          "skills": [
+            "Describe the real number system by recognising, defining and distinguishing properties of natural numbers, whole numbers, integers, rational numbers and irrational numbers",
+            "Use prime factorisation of numbers to find LCM and HCF",
+            "Solve problems in contexts involving whole numbers, ratio, rate and proportion"
+          ],
+          "methods": [
+            "Prime factorisation for finding LCM and HCF",
+            "Estimation and rounding strategies"
+          ],
+          "commonSteps": [
+            "Identify the type of number and its properties",
+            "Use prime factors where appropriate",
+            "Solve contextual problems"
+          ],
+          "prerequisites": [
+            { "skillId": "NUM-WHOLE-G8", "name": "Whole Numbers", "gradeLevel": "Grade 8" }
+          ],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Integers",
+          "skillId": "NUM-INT-G9",
+          "skills": [
+            "Perform calculations involving all four operations with integers",
+            "Perform calculations involving squares, cubes, square roots and cube roots of integers"
+          ],
+          "methods": [
+            "BODMAS order of operations",
+            "Sign rules for operations with integers"
+          ],
+          "commonSteps": [
+            "Apply BODMAS",
+            "Apply sign rules",
+            "Calculate roots and powers"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "(+)(+) = (+), (−)(−) = (+), (+)(−) = (−), (−)(+) = (−)"
+          ]
+        },
+        {
+          "name": "Common Fractions, Decimal Fractions and Percentages",
+          "skillId": "NUM-RAT-PCT-G9",
+          "skills": [
+            "Add, subtract, multiply and divide common fractions and mixed numbers",
+            "Convert between common fractions, decimal fractions and percentages",
+            "Calculate squares, cubes, square roots and cube roots of fractions and decimals",
+            "Solve problems involving percentage increase, decrease and profit/loss"
+          ],
+          "methods": [
+            "LCD for addition/subtraction; reciprocal for division",
+            "Percentage calculations in context"
+          ],
+          "commonSteps": [
+            "Simplify fractions",
+            "Convert between equivalent forms",
+            "Apply percentage formulae"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Mixed numbers or improper fractions — follow question instruction"
+          ],
+          "keyFormulae": [
+            "Percentage = (part/whole) × 100"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Exponents",
+      "subtopics": [
+        {
+          "name": "Exponents",
+          "skillId": "EXP-G9",
+          "skills": [
+            "Compare and represent numbers in exponential form and scientific notation (including negative exponents)",
+            "Apply the general laws of exponents: aᵐ × aⁿ = aᵐ⁺ⁿ, aᵐ ÷ aⁿ = aᵐ⁻ⁿ (m > n), (aᵐ)ⁿ = aᵐⁿ, (a × b)ⁿ = aⁿ × bⁿ, a⁰ = 1, a⁻ⁿ = 1/aⁿ",
+            "Perform calculations using numbers in exponential form",
+            "Solve problems involving exponents"
+          ],
+          "methods": [
+            "Laws apply to same base",
+            "Scientific notation for very large or small numbers"
+          ],
+          "commonSteps": [
+            "Identify base and exponent",
+            "Apply appropriate law",
+            "Simplify"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Write base and exponent clearly"
+          ],
+          "keyFormulae": [
+            "aᵐ × aⁿ = aᵐ⁺ⁿ",
+            "aᵐ ÷ aⁿ = aᵐ⁻ⁿ",
+            "(aᵐ)ⁿ = aᵐⁿ",
+            "(a × b)ⁿ = aⁿ × bⁿ",
+            "a⁰ = 1",
+            "a⁻ⁿ = 1/aⁿ"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Patterns, Functions and Algebra",
+      "subtopics": [
+        {
+          "name": "Numeric and Geometric Patterns; Functions and Relationships",
+          "skillId": "PAT-FUNC-G9",
+          "skills": [
+            "Investigate and extend numeric and geometric patterns (including non-constant difference/ratio patterns)",
+            "Describe and justify general rules in words or algebraic language",
+            "Determine input/output values or rules using flow diagrams, tables, formulae and equations",
+            "Determine, interpret and justify equivalence of different descriptions of the same relationship (verbal, diagrams, tables, formulae, equations, graphs)"
+          ],
+          "methods": [
+            "Identify relationships beyond constant difference/ratio",
+            "Represent patterns in multiple forms"
+          ],
+          "commonSteps": [
+            "Extend the pattern",
+            "Describe the rule",
+            "Represent equivalently"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Algebraic Expressions",
+          "skillId": "ALG-EXP-G9",
+          "skills": [
+            "Recognise conventions for writing algebraic expressions",
+            "Identify and classify like and unlike terms, coefficients and exponents",
+            "Recognise monomials, binomials and trinomials",
+            "Expand and simplify algebraic expressions (including products of binomials and trinomials)",
+            "Factorise algebraic expressions (common factor, difference of squares, trinomials)"
+          ],
+          "methods": [
+            "Distributive law for expansion",
+            "Grouping and common factors for factorisation"
+          ],
+          "commonSteps": [
+            "Identify like terms",
+            "Distribute or factor as required",
+            "Simplify fully"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "a(b + c) = ab + ac",
+            "(a + b)(a + c) = a² + a(c + b) + bc"
+          ]
+        },
+        {
+          "name": "Algebraic Equations",
+          "skillId": "ALG-EQN-G9",
+          "skills": [
+            "Solve linear equations (including those with brackets and variables on both sides)",
+            "Solve equations by factorisation (where one side is factorised to zero)",
+            "Set up and solve equations from word problems"
+          ],
+          "methods": [
+            "Inverse operations and balancing",
+            "Factorise then apply zero product rule"
+          ],
+          "commonSteps": [
+            "Simplify both sides",
+            "Isolate variable or factorise",
+            "Solve and check"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∴ before final answer"
+          ],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Space and Shape (Geometry)",
+      "subtopics": [
+        {
+          "name": "Geometry of Straight Lines and 2D Shapes",
+          "skillId": "GEO-G9",
+          "skills": [
+            "Revise and apply angle relationships (straight line, at a point, vertically opposite, corresponding, alternate, co-interior)",
+            "Classify 2D shapes (triangles and quadrilaterals) by sides and angles",
+            "Investigate properties of triangles using constructions (including exterior angle theorem)",
+            "Solve problems using properties of 2D shapes"
+          ],
+          "methods": [
+            "Angle pairs on parallel lines",
+            "Triangle angle sum and exterior angles"
+          ],
+          "commonSteps": [
+            "Identify angle relationships",
+            "Set up equations",
+            "Solve with reasons"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∠ABC or B̂ for angles"
+          ],
+          "keyFormulae": [
+            "Angles on a straight line = 180°",
+            "Angles at a point = 360°",
+            "Triangle angles = 180°",
+            "Quadrilateral angles = 360°"
+          ]
+        },
+        {
+          "name": "Theorem of Pythagoras",
+          "skillId": "GEO-PYT-G9",
+          "skills": [
+            "Use Pythagoras theorem to solve problems in 2D (including unknown sides and converse)",
+            "Apply in context (e.g., distances, heights)"
+          ],
+          "methods": [
+            "a² + b² = c² where c is hypotenuse",
+            "Converse to check right angle"
+          ],
+          "commonSteps": [
+            "Identify hypotenuse",
+            "Substitute and solve",
+            "Take square root"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Leave in surd form unless instructed"
+          ],
+          "keyFormulae": [
+            "a² + b² = c²"
+          ]
+        },
+        {
+          "name": "Constructions",
+          "skillId": "GEO-CON-G9",
+          "skills": [
+            "Perform basic geometric constructions (bisectors, perpendiculars, triangles from given data)",
+            "Use constructions to investigate properties of figures"
+          ],
+          "methods": [
+            "Compass and ruler constructions"
+          ],
+          "commonSteps": [
+            "Follow construction steps accurately",
+            "Investigate resulting properties"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Measurement",
+      "subtopics": [
+        {
+          "name": "Area and Perimeter of 2D Shapes",
+          "skillId": "MEA-2D-G9",
+          "skills": [
+            "Calculate perimeter and area of polygons and circles using formulae and SI unit conversions",
+            "Solve problems involving perimeter and area",
+            "Investigate effect of doubling dimensions on perimeter and area"
+          ],
+          "methods": [
+            "Break composite shapes into basic figures",
+            "Use π appropriately"
+          ],
+          "commonSteps": [
+            "Identify shapes",
+            "Apply formulae",
+            "Include units and round as required"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Area in square units",
+            "Perimeter in linear units"
+          ],
+          "keyFormulae": [
+            "Rectangle: A = l × b, P = 2(l + b)",
+            "Triangle: A = ½ × b × h",
+            "Circle: A = πr², C = 2πr",
+            "Trapezium: A = ½(a + b) × h"
+          ]
+        },
+        {
+          "name": "Surface Area and Volume of 3D Objects",
+          "skillId": "MEA-3D-G9",
+          "skills": [
+            "Calculate surface area and volume of prisms and cylinders",
+            "Classify 3D objects (including Platonic solids: properties of faces, vertices, edges)",
+            "Solve problems involving surface area and volume"
+          ],
+          "methods": [
+            "Volume = base area × height",
+            "Surface area = sum of all faces"
+          ],
+          "commonSteps": [
+            "Identify components",
+            "Calculate base area first",
+            "Add all surfaces"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Volume in cubic units",
+            "Surface area in square units"
+          ],
+          "keyFormulae": [
+            "Rectangular prism: V = l × b × h, SA = 2(lb + lh + bh)",
+            "Cylinder: V = πr²h, SA = 2πr² + 2πrh"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Data Handling",
+      "subtopics": [
+        {
+          "name": "Collecting, Organising, Summarising and Representing Data",
+          "skillId": "STA-G9",
+          "skills": [
+            "Pose questions on social, economic and environmental issues",
+            "Select sources, distinguish samples and populations, choose data collection methods",
+            "Organise and summarise data using measures of central tendency (mean, median, mode) and dispersion (range, extremes, outliers)",
+            "Draw and interpret bar graphs, histograms and other representations",
+            "Analyse and report on data"
+          ],
+          "methods": [
+            "Calculate mean, median, mode",
+            "Identify outliers"
+          ],
+          "commonSteps": [
+            "Organise data",
+            "Calculate statistics",
+            "Represent graphically",
+            "Interpret in context"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "Mean = Σx / n"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Probability",
+      "subtopics": [
+        {
+          "name": "Probability",
+          "skillId": "PRB-G9",
+          "skills": [
+            "Determine probabilities for compound events using two-way tables and tree diagrams",
+            "Predict relative frequency from probability and compare with experimental results",
+            "Explain possible differences between relative frequency and theoretical probability"
+          ],
+          "methods": [
+            "P(A) = favourable / total",
+            "Use tables and diagrams for compound events"
+          ],
+          "commonSteps": [
+            "List sample space systematically",
+            "Count favourable outcomes",
+            "Calculate probability",
+            "Compare with experiments"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "P(A) for probability"
+          ],
+          "keyFormulae": [
+            "P(A) = n(A)/n(S)"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -32,9 +32,11 @@ app.get('/health', (req, res) => {
 const API_VERSION = process.env.API_VERSION || 'v1';
 const sessionRoutes = require('./routes/sessions');
 const remediationRoutes = require('./routes/remediation');
+const curriculumRoutes = require('./routes/curriculum');
 
 app.use(`/api/sessions`, sessionRoutes);
 app.use(`/api/remediation`, remediationRoutes);
+app.use(`/api/curriculum`, curriculumRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));

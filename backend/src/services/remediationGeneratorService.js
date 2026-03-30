@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const RemediationUnit = require('../models/RemediationUnit');
 const FailureSignal = require('../models/FailureSignal');
+const curriculumService = require('./curriculumService');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -12,14 +13,12 @@ class RemediationGeneratorService {
    */
   async generateRemediationPlan(session) {
     try {
-      // Get all confirmed failures
       const failures = await FailureSignal.getConfirmed(session._id);
 
       if (!failures || failures.length === 0) {
         throw new Error('No confirmed failures to remediate');
       }
 
-      // Generate remediation for each failure
       const remediationUnits = [];
 
       for (let i = 0; i < failures.length; i++) {
@@ -27,14 +26,12 @@ class RemediationGeneratorService {
         const remediation = await this.generateRemediationUnit(
           session,
           failure,
-          i + 1, // priority
+          i + 1,
           failures.length
         );
-
         remediationUnits.push(remediation);
       }
 
-      // Update session
       session.remediationPlan = remediationUnits.map(r => r._id);
       await session.updateStatus('remediation-generated');
 
@@ -49,12 +46,24 @@ class RemediationGeneratorService {
    * Generate single remediation unit for a failure
    */
   async generateRemediationUnit(session, failure, priority, totalFailures) {
-    const prompt = this.buildRemediationPrompt(session, failure, priority, totalFailures);
+    // Fetch focused curriculum context for this failure's topic and skills
+    const failureTopic = failure.detectedConcepts?.[0] || failure.specificIssue || null;
+    const failureSkills = failure.detectedConcepts || [];
+    const curriculumContext = await curriculumService.getRemediationContext(
+      session.learningScope,
+      failureTopic,
+      failureSkills
+    );
+
+    const prompt = this.buildRemediationPrompt(session, failure, priority, totalFailures, curriculumContext);
 
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 4096,
       messages: [{
+        role: 'system',
+        content: `You are an expert ${session.learningScope.subject || ''} tutor who creates remediation plans aligned with ${session.learningScope.curriculum} curriculum standards for ${session.learningScope.grade} in ${session.learningScope.country}. Your plans use the methods, notation, and terminology that this student's teachers use.`
+      }, {
         role: 'user',
         content: prompt
       }],
@@ -64,7 +73,6 @@ class RemediationGeneratorService {
     const text = response.choices[0].message.content.trim();
     const remediationData = JSON.parse(text);
 
-    // Create RemediationUnit
     const unit = await RemediationUnit.create({
       sessionId: session._id,
       failureSignalId: failure._id,
@@ -84,113 +92,98 @@ class RemediationGeneratorService {
   }
 
   /**
-   * Build remediation generation prompt
+   * Build curriculum-aware remediation prompt
    */
-  buildRemediationPrompt(session, failure, priority, totalFailures) {
+  buildRemediationPrompt(session, failure, priority, totalFailures, curriculumContext = null) {
     const evidenceText = failure.evidence.map(e =>
-      `Question ${e.questionNumber}: "${e.studentAnswer}" (should be "${e.correctAnswer || 'correct'}")`
+      `Q${e.questionNumber}: Student wrote "${e.studentAnswer}" — correct is "${e.correctAnswer || 'unknown'}"\n  Analysis: ${e.reasoning}`
     ).join('\n');
 
-    return `You are creating a personalized remediation plan for a ${session.learningScope.grade} student in ${session.learningScope.country} (${session.learningScope.curriculum} curriculum).
+    return `CREATE A REMEDIATION PLAN
+
+STUDENT CONTEXT:
+- Grade: ${session.learningScope.grade}
+- Curriculum: ${session.learningScope.curriculum}
+- Country: ${session.learningScope.country}
+${session.learningScope.subject ? `- Subject: ${session.learningScope.subject}` : ''}
 
 DETECTED FAILURE:
-Category: ${failure.category}
-Specific Issue: ${failure.specificIssue}
-Root Cause: ${failure.rootCause}
-Misconception: ${failure.misconceptionDescription || 'N/A'}
-Evidence:
+- Category: ${failure.category}
+- Issue: ${failure.specificIssue}
+- Root Cause: ${failure.rootCause}
+- Misconception: ${failure.misconceptionDescription || 'N/A'}
+- Severity: ${failure.severity}
+- Affected Questions: ${failure.affectedQuestions?.join(', ') || 'N/A'}
+
+EVIDENCE:
 ${evidenceText}
 
-${failure.prerequisiteChain ? `
-PREREQUISITE GAP:
-Missing: ${failure.prerequisiteChain.gapLevel || 'Unknown'}
-Current Topic: ${failure.prerequisiteChain.currentTopic}
+${failure.prerequisiteChain ? `PREREQUISITE GAP:
+- Current Topic: ${failure.prerequisiteChain.currentTopic}
+- Missing Prerequisite: ${failure.prerequisiteChain.immediatePrerequisite}
+- Gap Level: ${failure.prerequisiteChain.gapLevel || 'Same grade'}
 ` : ''}
 
-PRIORITY: ${priority} of ${totalFailures} (${priority === 1 ? 'HIGHEST' : priority === totalFailures ? 'LOWEST' : 'MEDIUM'})
+PRIORITY: ${priority} of ${totalFailures} (${failure.severity} severity)
 
-YOUR TASK:
-Create a complete remediation plan with:
-1. Learning steps (2-4 steps with time estimates)
-2. Practice problems (3-5 AI-generated problems)
-3. Success checks (specific validation criteria)
-4. Remediation type (choose one: concept-review, practice-problems, prerequisite-work, boundary-testing)
+REQUIREMENTS:
+1. Learning steps must use ${session.learningScope.curriculum} methods and notation
+2. Practice problems must match ${session.learningScope.grade} difficulty level
+3. Explanations should reference how this topic is taught in ${session.learningScope.country}
+4. If there's a prerequisite gap, include foundation-building steps first
+5. Practice problems must be solvable and have definitive correct answers
 
-REMEDIATION TYPE GUIDELINES:
-- concept-review: If they don't understand the core concept
-- practice-problems: If they understand but need more practice
-- prerequisite-work: If they're missing foundational knowledge
-- boundary-testing: If they need to master edge cases
-
-Return JSON in this format:
+Return JSON:
 {
-  "title": "Fix Sign Rules for Negative Multiplication",
-  "diagnosis": "What's wrong (1 sentence)",
+  "title": "Short descriptive title for this remediation unit",
+  "diagnosis": "Plain-language explanation of what the student is doing wrong and why (2-3 sentences, written TO the student)",
   "remediationType": "concept-review" | "practice-problems" | "prerequisite-work" | "boundary-testing",
   "learningSteps": [
     {
       "stepNumber": 1,
-      "description": "Review sign rule explanation: negative × negative = positive",
+      "description": "Clear, actionable instruction for what to study/do",
       "estimatedTimeMinutes": 5,
-      "resources": ["Khan Academy: Multiplying Negative Numbers", "Practice worksheet link"]
-    },
-    {
-      "stepNumber": 2,
-      "description": "Practice 10 basic examples of negative multiplication",
-      "estimatedTimeMinutes": 10,
-      "resources": []
+      "resources": ["Specific resource suggestions relevant to ${session.learningScope.curriculum}"]
     }
   ],
   "practiceProblems": [
     {
       "problemNumber": 1,
-      "question": "Calculate: -3 × -4",
-      "correctAnswer": "12",
-      "hint": "Remember: negative × negative = positive",
-      "difficulty": "easy"
-    },
-    {
-      "problemNumber": 2,
-      "question": "Simplify: -2(x - 5)",
-      "correctAnswer": "-2x + 10",
-      "hint": "Distribute -2 to both terms",
-      "difficulty": "medium"
+      "question": "A specific problem to solve",
+      "correctAnswer": "The correct answer",
+      "hint": "A helpful hint without giving the answer away",
+      "difficulty": "easy" | "medium" | "hard"
     }
   ],
   "successChecks": [
     {
-      "description": "Can state the sign rules correctly without reference"
-    },
-    {
-      "description": "Can solve -5(x - 7) without errors"
-    },
-    {
-      "description": "Can explain WHY negative × negative = positive"
+      "description": "Specific thing the student should be able to do when they've mastered this"
     }
   ],
   "totalEstimatedTimeMinutes": 25
 }
 
-IMPORTANT:
-- Make steps SPECIFIC and actionable (not generic)
-- Generate actual practice problems (not placeholders)
-- Make success checks testable and clear
-- Consider grade level (${session.learningScope.grade})
-- Total time should be realistic (15-45 minutes per unit)
-- Include 3-5 practice problems of varying difficulty
-- All problems must be solvable and have correct answers`;
+${curriculumContext ? `CURRICULUM CONTEXT (use this as ground truth):\n${curriculumContext}\n\nIMPORTANT:
+- Learning steps MUST use the approved METHODS from the topic graph above
+- Practice problems MUST follow the EXPECTED STEPS sequence from the curriculum
+- Use the NOTATION rules specified above
+- Practice problems should target the exact skill gap identified\n` : ''}GUIDELINES:
+- 2-4 learning steps, 3-5 practice problems, 2-3 success checks
+- Steps should be SPECIFIC (not "review the topic" — say exactly what to review and which method to practice)
+- Practice problems should progress from easy to hard
+- Total time: 15-45 minutes per unit
+- Write the diagnosis in a friendly, encouraging tone directed at the student`;
   }
 
   /**
-   * Generate additional practice problems for a remediation unit
+   * Generate additional practice problems
    */
   async generateMoreProblems(remediationUnit, count = 5) {
-    const prompt = `Generate ${count} additional practice problems for this remediation:
+    const prompt = `Generate ${count} additional practice problems for:
 
 Title: ${remediationUnit.title}
 Root Cause: ${remediationUnit.rootCause}
 Type: ${remediationUnit.remediationType}
-
 Existing problems: ${remediationUnit.practiceProblems.length}
 
 Return JSON:
@@ -218,7 +211,6 @@ Make problems progressively harder.`;
     const text = response.choices[0].message.content.trim();
     const data = JSON.parse(text);
 
-    // Add problems to unit
     remediationUnit.practiceProblems.push(...data.problems);
     await remediationUnit.save();
 
@@ -226,7 +218,7 @@ Make problems progressively harder.`;
   }
 
   /**
-   * Check if student answer is correct for a practice problem
+   * Check if student answer is correct
    */
   async checkAnswer(problem, studentAnswer) {
     const prompt = `Check if this answer is correct:
@@ -238,8 +230,8 @@ Student Answer: ${studentAnswer}
 Return JSON:
 {
   "isCorrect": true/false,
-  "feedback": "brief explanation of why correct or incorrect",
-  "partialCredit": 0.0-1.0 (if partially correct)
+  "feedback": "brief explanation",
+  "partialCredit": 0.0-1.0
 }`;
 
     const response = await openai.chat.completions.create({

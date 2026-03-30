@@ -1,0 +1,426 @@
+{
+  "curriculumCode": "CAPS",
+  "meta": {
+    "country": "South Africa",
+    "curriculum": "CAPS",
+    "grade": "Grade 8",
+    "subject": "Mathematics",
+    "notation": [
+      "Use the 'therefore' symbol (∴) before final answers",
+      "Use decimal point (not comma) for decimals",
+      "Fractions in simplest form",
+      "Coordinates written as (x; y) with semicolon"
+    ],
+    "markingStandards": [
+      "Full marks require all working shown",
+      "Answer-only typically earns 1 mark",
+      "Method marks for correct approach",
+      "Consistent accuracy marks apply"
+    ],
+    "terminology": [
+      {
+        "term": "factorise",
+        "note": "South African English — not 'factor'"
+      },
+      {
+        "term": "hence",
+        "note": "Must use your previous answer"
+      },
+      {
+        "term": "show that",
+        "note": "Must prove the given result"
+      }
+    ],
+    "assessmentFormat": "Paper 1: Numbers, Operations and Relationships; Patterns, Functions and Algebra. Paper 2: Space and Shape (Geometry), Measurement, Data Handling (including Probability)."
+  },
+  "topics": [
+    {
+      "topic": "Numbers, Operations and Relationships",
+      "subtopics": [
+        {
+          "name": "Whole Numbers",
+          "skillId": "NUM-WHOLE-G8",
+          "skills": [
+            "Properties of whole numbers (commutative, associative, distributive)",
+            "Calculations using all four operations with whole numbers, estimation and rounding",
+            "Multiples, factors, prime factors, LCM and HCF (by inspection or prime factorisation)",
+            "Solve problems involving ratio, rate and financial contexts"
+          ],
+          "methods": [
+            "Use estimation and rounding strategies",
+            "Long multiplication and division in columns",
+            "Prime factorisation for HCF and LCM"
+          ],
+          "commonSteps": [
+            "Apply properties where appropriate",
+            "Estimate before calculating",
+            "Use prime factors for multiples and factors",
+            "Solve contextual problems"
+          ],
+          "prerequisites": [
+            {
+              "skillId": "NUM-G7",
+              "name": "Whole number operations",
+              "gradeLevel": "Grade 7"
+            }
+          ],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Integers",
+          "skillId": "NUM-INT-G8",
+          "skills": [
+            "Add, subtract, multiply and divide integers",
+            "Perform calculations involving squares, cubes, square roots and cube roots of integers",
+            "Apply order of operations (BODMAS)",
+            "Properties of integers (commutative, associative, distributive, inverses)"
+          ],
+          "methods": [
+            "BODMAS order of operations",
+            "Sign rules for multiplication and division",
+            "Adding a negative equals subtracting a positive"
+          ],
+          "commonSteps": [
+            "Apply BODMAS — brackets first",
+            "Work left to right for multiplication/division then addition/subtraction",
+            "Apply sign rules for operations"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "(+)(+) = (+), (−)(−) = (+), (+)(−) = (−), (−)(+) = (−)"
+          ]
+        },
+        {
+          "name": "Common Fractions, Decimal Fractions and Percentages",
+          "skillId": "NUM-RAT-PCT-G8",
+          "skills": [
+            "Add, subtract, multiply and divide common fractions (including mixed numbers and division by fractions)",
+            "Calculate squares, cubes, square roots and cube roots of fractions and decimals",
+            "Convert between common fractions, decimal fractions and percentages",
+            "Calculate percentage of an amount, percentage increase and decrease",
+            "Order and compare rational numbers"
+          ],
+          "methods": [
+            "Find LCD for addition and subtraction of fractions",
+            "Multiply by reciprocal for division of fractions",
+            "Percentage: (part/whole) × 100 or new amount = original × (1 ± rate/100)"
+          ],
+          "commonSteps": [
+            "Convert to equivalent fractions with common denominator where needed",
+            "Simplify all answers to lowest terms",
+            "Convert between forms as required"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Mixed numbers or improper fractions — follow question instruction"
+          ],
+          "keyFormulae": [
+            "Percentage = (part/whole) × 100"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Exponents",
+      "subtopics": [
+        {
+          "name": "Exponents",
+          "skillId": "EXP-G8",
+          "skills": [
+            "Write repeated multiplication in exponential form and calculate powers of integers and rational numbers",
+            "Compare and represent numbers in exponential form and scientific notation (positive exponents)",
+            "Apply basic exponent laws: aᵐ × aⁿ = aᵐ⁺ⁿ, aᵐ ÷ aⁿ = aᵐ⁻ⁿ (m > n), (aᵐ)ⁿ = aᵐⁿ, (a × b)ⁿ = aⁿ × bⁿ, a⁰ = 1",
+            "Perform calculations involving exponents, squares, cubes, square roots and cube roots",
+            "Solve problems in contexts involving exponents"
+          ],
+          "methods": [
+            "aᵐ means a multiplied by itself m times",
+            "Same base: add exponents when multiplying, subtract when dividing",
+            "Power of a power: multiply exponents"
+          ],
+          "commonSteps": [
+            "Identify the base and exponent",
+            "Check if bases are the same for laws",
+            "Apply the correct law",
+            "Simplify and calculate where needed"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Write base and exponent clearly: 2³ not 23"
+          ],
+          "keyFormulae": [
+            "aᵐ × aⁿ = aᵐ⁺ⁿ",
+            "aᵐ ÷ aⁿ = aᵐ⁻ⁿ",
+            "(aᵐ)ⁿ = aᵐⁿ",
+            "(a × b)ⁿ = aⁿ × bⁿ",
+            "a⁰ = 1"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Patterns, Functions and Algebra",
+      "subtopics": [
+        {
+          "name": "Numeric and Geometric Patterns; Functions and Relationships",
+          "skillId": "PAT-FUNC-G8",
+          "skills": [
+            "Investigate and extend numeric and geometric patterns (including those represented in tables, diagrams or algebraically)",
+            "Describe rules or relationships in own words or algebraic language",
+            "Determine input and output values or rules using flow diagrams, tables, formulae and equations",
+            "Interpret and justify equivalence of different descriptions of the same relationship"
+          ],
+          "methods": [
+            "Look for constant difference or constant ratio",
+            "Describe general rules"
+          ],
+          "commonSteps": [
+            "Extend the pattern",
+            "Describe the rule",
+            "Represent in different forms (table, diagram, equation)"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Algebraic Expressions",
+          "skillId": "ALG-EXP-G8",
+          "skills": [
+            "Recognise conventions for writing algebraic expressions",
+            "Identify coefficients, variables, constants, like and unlike terms",
+            "Simplify by collecting like terms",
+            "Multiply a monomial by a binomial or trinomial (expand and simplify)",
+            "Determine squares, cubes, square roots and cube roots of algebraic terms"
+          ],
+          "methods": [
+            "Like terms have the same variables with the same exponents",
+            "Distributive law: a(b + c) = ab + ac"
+          ],
+          "commonSteps": [
+            "Identify like terms",
+            "Group and add/subtract coefficients",
+            "Distribute the monomial to each term in the bracket"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "a(b + c) = ab + ac"
+          ]
+        },
+        {
+          "name": "Algebraic Equations",
+          "skillId": "ALG-LIN-G8",
+          "skills": [
+            "Solve one-step and two-step linear equations",
+            "Solve equations with the variable on one or both sides (simple cases)",
+            "Set up and solve simple equations from word problems"
+          ],
+          "methods": [
+            "Use inverse operations",
+            "Balance method: perform the same operation on both sides"
+          ],
+          "commonSteps": [
+            "Identify the operation applied to the variable",
+            "Apply the inverse to both sides",
+            "Isolate the variable",
+            "Check by substitution"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∴ before final answer"
+          ],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Space and Shape (Geometry)",
+      "subtopics": [
+        {
+          "name": "Constructions, Geometry of Straight Lines and 2D Shapes",
+          "skillId": "GEO-G8",
+          "skills": [
+            "Perform basic constructions of geometric figures",
+            "Apply angle relationships: angles on a straight line (180°), angles at a point (360°), vertically opposite angles equal, perpendicular lines",
+            "Classify triangles by sides and angles; apply angle sum of triangle (180°)",
+            "Classify quadrilaterals; apply angle sum of quadrilateral (360°)",
+            "Identify properties of 2D shapes"
+          ],
+          "methods": [
+            "Angles on a straight line sum to 180°",
+            "Angles at a point sum to 360°",
+            "Vertically opposite angles are equal"
+          ],
+          "commonSteps": [
+            "Identify the angle relationship from the diagram",
+            "Set up the equation",
+            "Solve for the unknown with reason"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∠ABC or B̂ for angles"
+          ],
+          "keyFormulae": [
+            "Angles on a straight line = 180°",
+            "Angles at a point = 360°",
+            "Triangle angles = 180°",
+            "Quadrilateral angles = 360°"
+          ]
+        },
+        {
+          "name": "Theorem of Pythagoras",
+          "skillId": "GEO-PYT-G8",
+          "skills": [
+            "Identify the hypotenuse in a right-angled triangle",
+            "Use a² + b² = c² to find an unknown side",
+            "Use the converse to determine if a triangle is right-angled"
+          ],
+          "methods": [
+            "c is always the longest side (hypotenuse)",
+            "Converse: if a² + b² = c² then the triangle is right-angled at the vertex opposite c"
+          ],
+          "commonSteps": [
+            "Identify the right angle and hypotenuse",
+            "Label sides a, b, c (c = hypotenuse)",
+            "Substitute into the theorem",
+            "Solve and take square root if needed"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Leave answer in surd form unless instructed otherwise"
+          ],
+          "keyFormulae": [
+            "a² + b² = c²"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Measurement",
+      "subtopics": [
+        {
+          "name": "Area and Perimeter of 2D Shapes",
+          "skillId": "MEA-2D-G8",
+          "skills": [
+            "Calculate perimeter of polygons and circles",
+            "Calculate area of rectangles, triangles, circles and trapeziums",
+            "Calculate area and perimeter of composite and irregular 2D shapes"
+          ],
+          "methods": [
+            "Break composite shapes into basic shapes",
+            "Add or subtract areas as appropriate"
+          ],
+          "commonSteps": [
+            "Identify the shape(s)",
+            "Write the correct formula",
+            "Substitute values (use π ≈ 3.14 or as instructed)",
+            "Calculate and include units"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Area in square units (cm², m²)",
+            "Round to 2 decimal places or as instructed"
+          ],
+          "keyFormulae": [
+            "Rectangle: A = l × b, P = 2(l + b)",
+            "Triangle: A = ½ × b × h",
+            "Circle: A = πr², C = 2πr",
+            "Trapezium: A = ½(a + b) × h"
+          ]
+        },
+        {
+          "name": "Surface Area and Volume of 3D Objects",
+          "skillId": "MEA-3D-G8",
+          "skills": [
+            "Calculate volume of prisms (including rectangular and triangular) and cylinders",
+            "Calculate surface area of prisms and cylinders",
+            "Solve problems involving volume and surface area of 3D objects"
+          ],
+          "methods": [
+            "Volume of prism = area of base × height",
+            "Surface area = sum of areas of all faces"
+          ],
+          "commonSteps": [
+            "Identify the 3D shape and its components",
+            "Write the formula",
+            "Substitute values (watch units)",
+            "Calculate"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Volume in cubic units (cm³, m³)",
+            "Surface area in square units"
+          ],
+          "keyFormulae": [
+            "Rectangular prism: V = l × b × h, SA = 2(lb + lh + bh)",
+            "Cylinder: V = πr²h, SA = 2πr² + 2πrh"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Data Handling",
+      "subtopics": [
+        {
+          "name": "Collecting, Organising, Summarising and Representing Data",
+          "skillId": "STA-G8",
+          "skills": [
+            "Organise data using frequency tables and tallies",
+            "Draw bar graphs and histograms",
+            "Calculate mean, median and mode",
+            "Read, interpret, analyse and report on data and graphs"
+          ],
+          "methods": [
+            "Mean = sum of values / number of values",
+            "Median = middle value in ordered data",
+            "Mode = most frequent value"
+          ],
+          "commonSteps": [
+            "Organise and sort data if needed",
+            "Calculate the required measure",
+            "Label graphs correctly with title and scale"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "Mean = Σx / n"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Probability",
+      "subtopics": [
+        {
+          "name": "Probability",
+          "skillId": "PRB-G8",
+          "skills": [
+            "Understand probability as a value between 0 and 1 measuring chance",
+            "List all possible outcomes in a sample space (using tables or tree diagrams)",
+            "Calculate probability of a single event",
+            "Understand relative frequency and its relation to theoretical probability"
+          ],
+          "methods": [
+            "P(event) = number of favourable outcomes / total number of outcomes"
+          ],
+          "commonSteps": [
+            "List the complete sample space systematically",
+            "Count favourable outcomes",
+            "Divide and express as a fraction in simplest form"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "P(A) for probability of event A",
+            "Probability expressed as a fraction between 0 and 1"
+          ],
+          "keyFormulae": [
+            "P(A) = n(A)/n(S)"
+          ]
+        }
+      ]
+    }
+  ]
+}

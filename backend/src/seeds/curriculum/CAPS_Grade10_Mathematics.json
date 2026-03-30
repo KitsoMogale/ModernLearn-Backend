@@ -1,0 +1,385 @@
+{
+  "curriculumCode": "CAPS",
+  "meta": {
+    "country": "South Africa",
+    "curriculum": "CAPS",
+    "grade": "Grade 10",
+    "subject": "Mathematics",
+    "notation": [
+      "Use the 'therefore' symbol (∴) before final answers",
+      "Use decimal point (not comma) for decimals",
+      "Fractions in simplest form",
+      "Coordinates written as (x; y) with semicolon"
+    ],
+    "markingStandards": [
+      "Full marks require all working shown",
+      "Answer-only typically earns 1 mark",
+      "Method marks for correct approach",
+      "Consistent accuracy marks apply"
+    ],
+    "terminology": [
+      { "term": "factorise", "note": "South African English — not 'factor'" },
+      { "term": "hence", "note": "Must use your previous answer" },
+      { "term": "show that", "note": "Must prove the given result" }
+    ],
+    "assessmentFormat": "Paper 1: Algebra (expressions, equations and inequalities), Number patterns, Exponents and surds, Functions and graphs, Finance, growth and decay, Probability. Paper 2: Trigonometry, Euclidean Geometry and Measurement, Analytical Geometry, Statistics."
+  },
+  "topics": [
+    {
+      "topic": "Algebra",
+      "subtopics": [
+        {
+          "name": "Algebraic Expressions",
+          "skillId": "ALG-EXP-G10",
+          "skills": [
+            "Simplify algebraic expressions using the distributive law and laws of exponents",
+            "Multiply binomials and trinomials",
+            "Factorise algebraic expressions (common factor, difference of squares, trinomials of the form ax² + bx + c where a=1)",
+            "Simplify algebraic fractions (addition, subtraction, multiplication and division)"
+          ],
+          "methods": [
+            "Distributive law for expansion",
+            "Grouping and common factors for factorisation",
+            "Find LCD for algebraic fractions"
+          ],
+          "commonSteps": [
+            "Expand where necessary",
+            "Identify and factorise common factors or patterns",
+            "Simplify by cancelling common factors",
+            "Combine like terms"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "a(b + c) = ab + ac",
+            "(a + b)(a + c) = a² + ac + ab + bc"
+          ]
+        },
+        {
+          "name": "Exponents and Surds",
+          "skillId": "EXP-SURD-G10",
+          "skills": [
+            "Apply the laws of exponents for integral exponents (including negative exponents)",
+            "Simplify expressions involving exponents",
+            "Rationalise denominators and simplify surds",
+            "Estimate between which two integers a simple surd lies",
+            "Round rational and irrational numbers appropriately"
+          ],
+          "methods": [
+            "Laws of exponents: product, quotient, power, zero and negative exponents",
+            "Rationalise by multiplying by conjugate"
+          ],
+          "commonSteps": [
+            "Apply exponent laws to simplify",
+            "Convert surds to simplest form",
+            "Rationalise denominators"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "aᵐ × aⁿ = aᵐ⁺ⁿ",
+            "aᵐ ÷ aⁿ = aᵐ⁻ⁿ",
+            "(aᵐ)ⁿ = aᵐⁿ",
+            "a⁰ = 1",
+            "a⁻ⁿ = 1/aⁿ"
+          ]
+        },
+        {
+          "name": "Equations and Inequalities",
+          "skillId": "ALG-EQN-G10",
+          "skills": [
+            "Solve linear equations (including with brackets and fractions)",
+            "Solve quadratic equations by factorisation",
+            "Solve literal equations",
+            "Solve linear inequalities and represent solutions on a number line",
+            "Solve simultaneous linear equations (by substitution or elimination)"
+          ],
+          "methods": [
+            "Balancing method and inverse operations",
+            "Factorise and apply zero product rule for quadratics"
+          ],
+          "commonSteps": [
+            "Simplify both sides",
+            "Isolate the variable or factorise",
+            "Solve and check solutions"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∴ before final answer"
+          ],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Number Patterns, Sequences and Series",
+      "subtopics": [
+        {
+          "name": "Number Patterns",
+          "skillId": "PAT-G10",
+          "skills": [
+            "Investigate and extend number patterns (linear and quadratic)",
+            "Determine the general term (Tn) for linear patterns",
+            "Make conjectures and generalisations about patterns",
+            "Provide explanations and justifications"
+          ],
+          "methods": [
+            "Look for constant difference (linear) or constant second difference (quadratic)"
+          ],
+          "commonSteps": [
+            "Find the pattern in differences",
+            "Derive the general term",
+            "Verify with given terms"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Functions and Graphs",
+      "subtopics": [
+        {
+          "name": "Functions",
+          "skillId": "FUNC-G10",
+          "skills": [
+            "Work with relationships between variables in numerical, graphical, verbal and symbolic forms",
+            "Sketch and interpret graphs of linear functions (y = ax + q), quadratic (y = ax² + q), hyperbolic (y = a/x + q) and exponential (y = abˣ + q, b > 0)",
+            "Determine the effect of parameters a and q on graphs",
+            "Find equations of graphs from given information"
+          ],
+          "methods": [
+            "Point-by-point plotting or use of key features (intercepts, turning points, asymptotes)"
+          ],
+          "commonSteps": [
+            "Identify the form of the function",
+            "Determine key features (intercepts, asymptotes, domain/range)",
+            "Sketch the graph"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Finance, Growth and Decay",
+      "subtopics": [
+        {
+          "name": "Finance and Growth",
+          "skillId": "FIN-G10",
+          "skills": [
+            "Solve problems involving simple interest (A = P(1 + ni))",
+            "Solve problems involving compound growth and decay (A = P(1 + i)ⁿ)",
+            "Apply to contexts such as interest, hire purchase, inflation and population growth"
+          ],
+          "methods": [
+            "Use simple and compound growth/decay formulae"
+          ],
+          "commonSteps": [
+            "Identify the type of growth (simple or compound)",
+            "Substitute values into the formula",
+            "Solve for the unknown"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "A = P(1 + ni)",
+            "A = P(1 + i)ⁿ"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Trigonometry",
+      "subtopics": [
+        {
+          "name": "Trigonometry",
+          "skillId": "TRIG-G10",
+          "skills": [
+            "Define trigonometric ratios (sin θ, cos θ, tan θ) in right-angled triangles",
+            "Extend definitions to 0° ≤ θ ≤ 360°",
+            "Use special angles (0°, 30°, 45°, 60°, 90°)",
+            "Solve simple trigonometric equations",
+            "Sketch graphs of sin θ, cos θ and tan θ",
+            "Solve problems in two dimensions using trigonometry"
+          ],
+          "methods": [
+            "SOH-CAH-TOA in right triangles",
+            "Use calculator for values"
+          ],
+          "commonSteps": [
+            "Identify the ratio needed",
+            "Set up the equation",
+            "Solve using inverse functions or known values"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "sin θ = opposite/hypotenuse",
+            "cos θ = adjacent/hypotenuse",
+            "tan θ = opposite/adjacent"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Euclidean Geometry",
+      "subtopics": [
+        {
+          "name": "Euclidean Geometry",
+          "skillId": "GEO-EUC-G10",
+          "skills": [
+            "Investigate and prove theorems on triangles (including similarity and congruence)",
+            "Apply properties of quadrilaterals",
+            "Solve geometric problems using theorems and riders",
+            "Use constructions to investigate properties"
+          ],
+          "methods": [
+            "Prove similarity (AA, SSS, SAS) and congruence (SSS, SAS, ASA, AAS, RHS)",
+            "Use angle properties and parallel lines"
+          ],
+          "commonSteps": [
+            "State given information and theorems",
+            "Provide reasons for each statement",
+            "Conclude with the required result"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "∠ABC or B̂ for angles"
+          ],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Analytical Geometry",
+      "subtopics": [
+        {
+          "name": "Analytical Geometry",
+          "skillId": "GEO-ANA-G10",
+          "skills": [
+            "Use the distance formula between two points",
+            "Use the gradient (slope) formula",
+            "Use the midpoint formula",
+            "Determine the equation of a straight line (gradient-intercept or point-gradient form)",
+            "Solve problems involving points, lines and triangles on the Cartesian plane"
+          ],
+          "methods": [
+            "Distance: √[(x₂ - x₁)² + (y₂ - y₁)²]",
+            "Gradient: m = (y₂ - y₁)/(x₂ - x₁)",
+            "Midpoint: ((x₁ + x₂)/2 ; (y₁ + y₂)/2)"
+          ],
+          "commonSteps": [
+            "Substitute coordinates into formulae",
+            "Simplify",
+            "Interpret geometrically"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Coordinates as (x; y)"
+          ],
+          "keyFormulae": [
+            "Distance = √[(x₂ - x₁)² + (y₂ - y₁)²]",
+            "Gradient m = (y₂ - y₁)/(x₂ - x₁)",
+            "Midpoint = ((x₁ + x₂)/2 ; (y₁ + y₂)/2)"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Measurement",
+      "subtopics": [
+        {
+          "name": "Measurement",
+          "skillId": "MEA-G10",
+          "skills": [
+            "Calculate volume and surface area of right prisms, cylinders, pyramids, cones and spheres",
+            "Solve problems involving composite solids",
+            "Convert between SI units for length, area and volume"
+          ],
+          "methods": [
+            "Volume of prism/cylinder = base area × height",
+            "Surface area as sum of all faces"
+          ],
+          "commonSteps": [
+            "Identify the solid(s)",
+            "Calculate base area if needed",
+            "Apply formula and include units"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "Volume in cubic units",
+            "Surface area in square units"
+          ],
+          "keyFormulae": [
+            "Cylinder: V = πr²h, SA = 2πr² + 2πrh",
+            "Sphere: V = (4/3)πr³, SA = 4πr²"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Statistics",
+      "subtopics": [
+        {
+          "name": "Statistics",
+          "skillId": "STA-G10",
+          "skills": [
+            "Organise and summarise ungrouped and grouped data",
+            "Calculate measures of central tendency (mean, median, mode)",
+            "Calculate measures of dispersion (range, quartiles, interquartile range)",
+            "Draw and interpret box-and-whisker plots",
+            "Analyse and interpret statistical data"
+          ],
+          "methods": [
+            "Mean = Σx / n or for grouped data",
+            "Median from cumulative frequency or ordered data"
+          ],
+          "commonSteps": [
+            "Organise data into frequency tables if grouped",
+            "Calculate required statistics",
+            "Represent and interpret"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": [
+            "Mean = Σfx / Σf (grouped data)"
+          ]
+        }
+      ]
+    },
+    {
+      "topic": "Probability",
+      "subtopics": [
+        {
+          "name": "Probability",
+          "skillId": "PRB-G10",
+          "skills": [
+            "Use the fundamental counting principle",
+            "Calculate probability for single and combined events",
+            "Use two-way tables and tree diagrams for compound events",
+            "Solve probability problems in context"
+          ],
+          "methods": [
+            "P(A) = favourable / total",
+            "For independent events: P(A and B) = P(A) × P(B)"
+          ],
+          "commonSteps": [
+            "List or count outcomes systematically",
+            "Calculate probabilities",
+            "Use diagrams or tables where helpful"
+          ],
+          "prerequisites": [],
+          "notation": [
+            "P(A) for probability of event A"
+          ],
+          "keyFormulae": [
+            "P(A) = n(A)/n(S)"
+          ]
+        }
+      ]
+    }
+  ]
+}

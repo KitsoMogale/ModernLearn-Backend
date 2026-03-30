@@ -124,35 +124,6 @@ const uploadedImageSchema = new mongoose.Schema({
   }
 }, { _id: false });
 
-const conversationMessageSchema = new mongoose.Schema({
-  role: {
-    type: String,
-    enum: ['ai', 'student'],
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  timestamp: {
-    type: Date,
-    default: Date.now
-  },
-  state: {
-    type: String,
-    enum: [
-      'INITIAL_ERROR_ANALYSIS',
-      'STUDENT_REASONING_EXTRACTION',
-      'MISCONCEPTION_TEST',
-      'RULE_VERIFICATION',
-      'PREREQUISITE_CHECK',
-      'BOUNDARY_CASE_TEST',
-      'ROOT_CAUSE_CONFIRMATION',
-      'FAILURE_RECORDED'
-    ]
-  }
-}, { _id: false });
-
 const sessionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -170,7 +141,6 @@ const sessionSchema = new mongoose.Schema({
   },
   uploadedImages: [uploadedImageSchema],
   extractedQuestions: [extractedQuestionSchema],
-  conversationHistory: [conversationMessageSchema],
   detectedFailures: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'FailureSignal'
@@ -181,30 +151,12 @@ const sessionSchema = new mongoose.Schema({
   }],
   status: {
     type: String,
-    enum: ['created', 'uploaded', 'extracted', 'analyzing', 'diagnosing', 'remediation-generated', 'completed'],
+    enum: ['created', 'uploaded', 'extracted', 'analyzing', 'analyzed', 'remediation-generated', 'completed'],
     default: 'created',
     index: true
   },
-  currentDiagnosisState: {
-    type: String,
-    enum: [
-      'INITIAL_ERROR_ANALYSIS',
-      'STUDENT_REASONING_EXTRACTION',
-      'MISCONCEPTION_TEST',
-      'RULE_VERIFICATION',
-      'PREREQUISITE_CHECK',
-      'BOUNDARY_CASE_TEST',
-      'ROOT_CAUSE_CONFIRMATION',
-      'FAILURE_RECORDED'
-    ]
-  },
-  currentFailureIndex: {
-    type: Number,
-    default: 0
-  },
-  allFailuresConfirmed: {
-    type: Boolean,
-    default: false
+  analysisSummary: {
+    type: String
   }
 }, {
   timestamps: true
@@ -217,19 +169,6 @@ sessionSchema.index({ status: 1 });
 // Methods
 sessionSchema.methods.updateStatus = function(newStatus) {
   this.status = newStatus;
-  return this.save();
-};
-
-sessionSchema.methods.addConversationMessage = function(role, message, state) {
-  this.conversationHistory.push({ role, message, state });
-  return this.save();
-};
-
-sessionSchema.methods.updateDiagnosisState = function(state, failureIndex) {
-  this.currentDiagnosisState = state;
-  if (failureIndex !== undefined) {
-    this.currentFailureIndex = failureIndex;
-  }
   return this.save();
 };
 

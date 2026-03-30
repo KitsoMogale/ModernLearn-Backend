@@ -26,11 +26,11 @@ exports.generateRemediation = async (req, res) => {
       });
     }
 
-    // Check if all failures confirmed
-    if (!session.allFailuresConfirmed) {
+    // Check if session has been analyzed
+    if (!['analyzed', 'remediation-generated'].includes(session.status)) {
       return res.status(400).json({
         success: false,
-        message: 'Not all failures have been confirmed'
+        message: 'Session must be analyzed before generating remediation'
       });
     }
 

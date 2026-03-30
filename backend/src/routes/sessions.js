@@ -21,11 +21,9 @@ router.post('/:id/extract', sessionController.extractQuestions);
 // Question management
 router.patch('/:id/questions', sessionController.updateQuestions);
 
-// Diagnosis and conversation
+// Diagnosis (single-pass, no conversation)
 router.post('/:id/analyze', diagnosisController.analyzeSession);
-router.post('/:id/conversation', diagnosisController.processConversation);
 router.get('/:id/failures', diagnosisController.getFailures);
-router.get('/:id/conversation-history', diagnosisController.getConversationHistory);
 
 // Remediation
 router.post('/:id/generate-remediation', remediationController.generateRemediation);

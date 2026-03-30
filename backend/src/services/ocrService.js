@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const fs = require('fs').promises;
 const path = require('path');
+const curriculumService = require('./curriculumService');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -61,12 +62,18 @@ class OCRService {
    */
   async processExtractedText(rawText, learningScope) {
     try {
+      // Fetch minimal curriculum context for notation awareness
+      const ocrContext = await curriculumService.getOCRContext(learningScope);
+      const notationNote = ocrContext
+        ? `\n\nNOTATION CONTEXT FOR THIS CURRICULUM: ${ocrContext}`
+        : '';
+
       const response = await openai.chat.completions.create({
         model: 'gpt-4o',
         max_tokens: 8192,
         messages: [{
           role: 'user',
-          content: `You are analyzing a test/exam for a ${learningScope.grade} student in ${learningScope.country} following ${learningScope.curriculum} curriculum.
+          content: `You are analyzing a test/exam for a ${learningScope.grade} student in ${learningScope.country} following ${learningScope.curriculum} curriculum.${notationNote}
 
 RAW EXTRACTED TEXT:
 ${rawText}
