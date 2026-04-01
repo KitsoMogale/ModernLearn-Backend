@@ -6,11 +6,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
+/**
+ * 3-Stage Procedural Diagnostic Analysis
+ *
+ * Stage 1 — GRADE: For each question, work out the correct answer and mark the student's work.
+ *           No failure grouping, no root cause — just honest marking.
+ *
+ * Stage 2 — DIAGNOSE: Given the marked questions, identify real misconceptions.
+ *           Group related errors, find root causes, assign categories.
+ *           Be generous: correct answer + sound method = correct, period.
+ *
+ * Stage 3 — SYNTHESIZE: Produce a student-friendly summary and prerequisite analysis.
+ */
 class DiagnosticAnalysisService {
-  /**
-   * Analyze session questions and detect failures with full root cause diagnosis.
-   * No conversation needed — produces confirmed failures in one pass.
-   */
+
   async analyzeSession(session) {
     try {
       const { extractedQuestions, learningScope } = session;
@@ -19,38 +28,50 @@ class DiagnosticAnalysisService {
         throw new Error('No questions to analyze');
       }
 
-      // Fetch structured curriculum context to ground the AI
+      // Fetch structured curriculum context
       const conceptHints = curriculumService.extractConceptHints(extractedQuestions);
       const curriculumContext = await curriculumService.getDiagnosticContext(learningScope, conceptHints);
 
-      const prompt = this.buildAnalysisPrompt(extractedQuestions, learningScope);
+      // ── Stage 1: Grade each question ───────────────────────────────
+      console.log('  Stage 1: Grading questions...');
+      const grading = await this._stageGrade(extractedQuestions, learningScope, curriculumContext);
 
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
-        max_tokens: 12000,
-        messages: [{
-          role: 'system',
-          content: this.buildSystemPrompt(learningScope, curriculumContext)
-        }, {
-          role: 'user',
-          content: prompt
-        }],
-        response_format: { type: 'json_object' }
-      });
+      // ── Stage 2: Diagnose failures ─────────────────────────────────
+      console.log('  Stage 2: Diagnosing failures...');
+      const diagnosis = await this._stageDiagnose(grading, learningScope, curriculumContext);
 
-      const analysisText = response.choices[0].message.content.trim();
-      const analysis = JSON.parse(analysisText);
+      // ── Stage 3: Synthesize summary & prerequisites ────────────────
+      console.log('  Stage 3: Synthesizing...');
+      const synthesis = await this._stageSynthesize(grading, diagnosis, learningScope);
 
-      // Create confirmed FailureSignal documents (no probing needed)
+      // Merge into final analysis object
+      const analysis = {
+        questionAnalysis: grading.questionAnalysis,
+        failures: diagnosis.failures || [],
+        detectedConcepts: diagnosis.detectedConcepts || [],
+        summary: synthesis.summary || ''
+      };
+
+      // Attach prerequisite chains from synthesis
+      if (synthesis.prerequisiteAnalysis) {
+        for (const pa of synthesis.prerequisiteAnalysis) {
+          const failure = analysis.failures.find(f => f.specificIssue === pa.failure);
+          if (failure) {
+            failure.prerequisiteChain = pa.prerequisiteChain;
+          }
+        }
+      }
+
+      // Create FailureSignal documents
       const failureSignals = await this.createFailureSignals(session._id, analysis.failures);
 
-      // Update session with analysis
+      // Update session
       await this.updateSessionWithAnalysis(session, analysis);
 
       return {
         failureSignals,
-        detectedConcepts: analysis.detectedConcepts || [],
-        summary: analysis.summary || ''
+        detectedConcepts: analysis.detectedConcepts,
+        summary: analysis.summary
       };
     } catch (error) {
       console.error('Diagnostic analysis error:', error);
@@ -58,170 +79,193 @@ class DiagnosticAnalysisService {
     }
   }
 
-  /**
-   * System prompt that establishes the AI as a curriculum-aware examiner
-   */
-  buildSystemPrompt(learningScope, curriculumContext = null) {
-    let prompt = `You are an expert educational diagnostician specializing in the ${learningScope.curriculum} curriculum for ${learningScope.grade} level in ${learningScope.country}.
-${learningScope.subject ? `You are a subject specialist in ${learningScope.subject} at the ${learningScope.grade} level.` : ''}`;
+  // ═══════════════════════════════════════════════════════════════════
+  // Stage 1 — GRADE
+  // Mark each question: correct answer, is student right, brief note.
+  // ═══════════════════════════════════════════════════════════════════
 
-    if (curriculumContext) {
-      prompt += `\n\n${curriculumContext}
-
-YOUR ANALYSIS PROCESS — follow this STRICTLY:
-
-1. IDENTIFY: For each question, map it to a topic and subtopic from the TOPIC GRAPH above
-2. COMPARE: Compare the student's steps against the EXPECTED STEPS listed for that subtopic
-3. DETECT: Identify the root cause of each error — go deeper than "wrong answer"
-4. Look for PATTERNS across questions that reveal underlying misconceptions
-
-For CORRECT answers:
-- Verify the student used an approved METHOD from the topic graph
-- Check notation matches the NOTATION STANDARDS
-- Flag if the correct answer was reached through flawed reasoning
-
-IMPORTANT:
-- Use the curriculum context above as GROUND TRUTH — do not guess curriculum-specific details
-- Reference skill IDs (e.g., ALG-FAC-001) when identifying which skill is affected`;
-    } else {
-      prompt += `\n\nYOUR ANALYSIS APPROACH:
-1. Determine the CORRECT answer for each question using ${learningScope.curriculum} methods
-2. Compare the student's answer against curriculum expectations
-3. Identify the ROOT CAUSE of each error — go deeper than "wrong answer"
-4. Look for PATTERNS across questions that reveal underlying misconceptions
-5. Check if correct answers were achieved through flawed reasoning
-6. Identify PREREQUISITE GAPS from earlier grades
-7. Distinguish between conceptual misunderstanding vs careless mistakes vs method errors`;
-    }
-
-    return prompt;
-  }
-
-  /**
-   * Build the analysis prompt with questions and curriculum-aware instructions
-   */
-  buildAnalysisPrompt(questions, learningScope) {
+  async _stageGrade(questions, learningScope, curriculumContext) {
     const questionsText = questions.map(q => {
-      let text = `Question ${q.questionNumber}:
-  Text: ${q.questionText}
-  Student Answer: ${q.studentAnswer || '(No answer provided)'}`;
-
-      if (q.structure?.hasMultipleChoice) text += '\n  Type: Multiple Choice';
-      if (q.structure?.hasDiagram) text += '\n  Note: Contains diagram/visual';
-      if (q.structure?.hasTable) text += '\n  Note: Contains table';
-      if (q.structure?.hasEquations) text += '\n  Note: Contains equations';
-      if (q.subQuestions?.length > 0) text += `\n  Sub-questions: ${q.subQuestions.join(', ')}`;
-
+      let text = `Q${q.questionNumber}: ${q.questionText}\n  Student answer: ${q.studentAnswer || '(blank)'}`;
+      if (q.structure?.hasDiagram) text += '\n  [contains diagram]';
+      if (q.structure?.hasTable) text += '\n  [contains table]';
       return text;
     }).join('\n\n');
 
-    return `STUDENT TEST ANALYSIS
+    const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.grade} ${learningScope.subject || 'Mathematics'} marker in ${learningScope.country}.
 
-LEARNING SCOPE:
-- Grade: ${learningScope.grade}
-- Curriculum: ${learningScope.curriculum}
-- Country: ${learningScope.country}
-${learningScope.subject ? `- Subject: ${learningScope.subject}` : ''}
-${learningScope.topic ? `- Topic: ${learningScope.topic}` : ''}
+Your ONLY job is to MARK each question. For each question:
+- Work out the correct answer using ${learningScope.curriculum}-approved methods
+- Decide: is the student's answer correct, partially correct, or incorrect?
+- Write a brief note on what happened
 
-QUESTIONS AND STUDENT ANSWERS:
+${curriculumContext ? `CURRICULUM REFERENCE:\n${curriculumContext}\n` : ''}
+MARKING PHILOSOPHY — READ CAREFULLY:
+- A correct final answer with reasonable working = CORRECT. Do not nitpick.
+- If the student used a valid alternative method (not the textbook method), that is still correct.
+- Minor notation differences (e.g. brackets vs no brackets around a single-term answer) are NOT errors.
+- Only mark something wrong if the answer itself is wrong or the reasoning has a genuine flaw.
+- "Partially correct" means the student showed understanding but made a real mistake along the way.
+- Do NOT manufacture errors. If the work is correct, say so and move on.`;
+
+    const userPrompt = `Mark these ${learningScope.grade} ${learningScope.subject || 'Mathematics'} answers:
+
 ${questionsText}
 
-ANALYSIS INSTRUCTIONS:
+Return JSON:
+{
+  "questionAnalysis": [
+    {
+      "questionNumber": "1",
+      "topic": "e.g. Algebra",
+      "subtopic": "e.g. Factorisation",
+      "skillId": "e.g. ALG-FAC-001 or null if unknown",
+      "correctAnswer": "the correct answer",
+      "isCorrect": true,
+      "isPartiallyCorrect": false,
+      "conceptsTested": ["concept1", "concept2"],
+      "notes": "Brief note — what the student did, what went right or wrong"
+    }
+  ]
+}
 
-For EACH question:
-1. Work out the CORRECT answer using ${learningScope.curriculum}-approved methods for ${learningScope.grade}
-2. Determine if the student's answer is correct, partially correct, or incorrect
-3. If incorrect, determine exactly WHERE the student went wrong and WHY
-4. Consider: did they use the right method? Is the notation correct for ${learningScope.curriculum}?
+IMPORTANT: Be fair and generous. Students deserve credit for correct work.`;
 
-Then across ALL questions:
-5. Identify PATTERNS — are multiple errors caused by the same misconception?
-6. Group related errors into failures (max 2-5 failures, not one per question)
-7. For each failure, determine the ROOT CAUSE with confidence
-8. Check for PREREQUISITE GAPS from earlier grades
-9. Flag any correct answers that show flawed reasoning
+    const response = await this._callAI(systemPrompt, userPrompt, 4000);
+    return response;
+  }
 
-FAILURE CATEGORIES (use exactly):
-1. conceptual-understanding — Doesn't understand the concept itself
-2. rule-application — Knows the rule but applies it incorrectly
-3. procedural-execution — Understands concept but makes execution errors
-4. representation-interpretation — Can't interpret notation, diagrams, or graphs
-5. problem-interpretation — Misreads or misunderstands the question
-6. logical-reasoning — Makes illogical deductions or skips steps
-7. quantitative-execution — Arithmetic/calculation errors
-8. prerequisite-gap — Missing foundational knowledge from earlier levels
-9. strategic-approach — Uses wrong problem-solving strategy entirely
-10. careless-execution — Knows the material but makes careless slips
+  // ═══════════════════════════════════════════════════════════════════
+  // Stage 2 — DIAGNOSE
+  // Given the grading, identify real failures and group them.
+  // ═══════════════════════════════════════════════════════════════════
+
+  async _stageDiagnose(grading, learningScope, curriculumContext) {
+    // Only pass through incorrect/partial questions for diagnosis
+    const wrongQuestions = grading.questionAnalysis.filter(q => !q.isCorrect);
+
+    if (wrongQuestions.length === 0) {
+      return { failures: [], detectedConcepts: grading.questionAnalysis.flatMap(q => q.conceptsTested || []) };
+    }
+
+    const correctQuestions = grading.questionAnalysis.filter(q => q.isCorrect);
+
+    const systemPrompt = `You are an educational diagnostician. You are given the marked results of a ${learningScope.grade} ${learningScope.subject || 'Mathematics'} test (${learningScope.curriculum}, ${learningScope.country}).
+
+Your job: look at the INCORRECT answers and figure out WHY the student got them wrong. Group related errors into failures.
+
+${curriculumContext ? `CURRICULUM REFERENCE:\n${curriculumContext}\n` : ''}
+DIAGNOSTIC PRINCIPLES:
+- Focus on genuine misconceptions and skill gaps, not minor slips.
+- If only one question shows an issue and it could easily be a careless slip, classify it as "careless-execution" with LOW severity — do not inflate it.
+- Group related errors together. Two sign errors in distribution = one failure, not two.
+- Maximum 4 failures. If the student only got 1-2 wrong, 1 failure is fine.
+- Severity should reflect impact: "high" = fundamental gap affecting many problems, "medium" = specific misconception, "low" = isolated careless mistake.
+- Look at what the student got RIGHT to calibrate — if they solved 8/10 correctly, the 2 wrong ones are likely minor issues, not deep gaps.`;
+
+    const userPrompt = `INCORRECT ANSWERS (need diagnosis):
+${wrongQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]:
+  Correct answer: ${q.correctAnswer}
+  Student got: (marked wrong)
+  Notes: ${q.notes}`).join('\n\n')}
+
+${correctQuestions.length > 0 ? `\nCORRECT ANSWERS (context — student DID get these right):
+${correctQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]: Correct`).join('\n')}` : ''}
+
+Total: ${grading.questionAnalysis.length} questions, ${correctQuestions.length} correct, ${wrongQuestions.length} incorrect.
 
 Return JSON:
 {
   "failures": [
     {
-      "category": "rule-application",
-      "specificIssue": "Distributes the negative sign to the first term only, not both terms in the bracket",
-      "rootCause": "Student treats the negative sign as only applying to the first term after the bracket, not understanding that distribution means multiplying EVERY term inside",
-      "misconceptionDescription": "Believes -2(x - 3) means (-2)(x) - 3 instead of (-2)(x) + (-2)(-3)",
-      "detectedConcepts": ["distribution", "negative multiplication", "brackets"],
-      "skillIds": ["ALG-FAC-001"],
+      "category": "one of: conceptual-understanding, rule-application, procedural-execution, representation-interpretation, problem-interpretation, logical-reasoning, quantitative-execution, prerequisite-gap, strategic-approach, careless-execution",
+      "specificIssue": "Clear description of what's going wrong",
+      "rootCause": "WHY it's happening — the underlying misconception or gap",
+      "misconceptionDescription": "What the student seems to believe (if applicable, else null)",
+      "detectedConcepts": ["concept1"],
+      "skillIds": ["SKILL-ID or null"],
       "evidence": [
         {
           "questionNumber": "3",
-          "studentAnswer": "-2x - 6",
-          "correctAnswer": "-2x + 6",
-          "expectedSteps": ["Identify common factor -2", "Distribute -2 to x: -2x", "Distribute -2 to -3: +6"],
-          "studentSteps": ["Identified -2 as factor", "Got -2x correctly", "Wrote -6 instead of +6"],
-          "reasoning": "Student correctly multiplied -2 × x = -2x but wrote -6 instead of +6, failing to apply sign rules to the second term"
+          "studentAnswer": "what they wrote",
+          "correctAnswer": "what it should be",
+          "reasoning": "Brief explanation of how this question shows the failure"
         }
       ],
       "confidence": 0.9,
-      "prerequisiteChain": {
-        "currentTopic": "Algebraic distribution",
-        "immediatePrerequisite": "Sign rules for multiplication",
-        "gapLevel": null,
-        "testedPrerequisites": ["negative number multiplication"]
-      },
-      "severity": "high",
-      "affectedQuestions": ["3", "5a"]
+      "severity": "high | medium | low",
+      "affectedQuestions": ["3", "5"]
     }
   ],
-  "detectedConcepts": ["distribution", "negative multiplication", "like terms"],
-  "questionAnalysis": [
-    {
-      "questionNumber": "1",
-      "topic": "Algebra",
-      "subtopic": "Factorisation",
-      "skillId": "ALG-FAC-001",
-      "isCorrect": true,
-      "correctAnswer": "the correct answer",
-      "conceptsTested": ["common factor", "difference of squares"],
-      "notes": "Correct, method is sound"
-    },
-    {
-      "questionNumber": "2",
-      "topic": "Algebra",
-      "subtopic": "Factorisation",
-      "skillId": "ALG-FAC-001",
-      "isCorrect": false,
-      "correctAnswer": "the correct answer per ${learningScope.curriculum} standards",
-      "conceptsTested": ["trinomial factorisation"],
-      "notes": "What went wrong and why"
-    }
-  ],
-  "summary": "Brief overall assessment of the student's performance, strengths, and key areas to work on"
+  "detectedConcepts": ["all concepts seen across the test"]
 }
 
-IMPORTANT:
-- Map EVERY question to a topic, subtopic, and skillId in questionAnalysis
-- Compare student steps vs expected steps (from the topic graph) in evidence
-- Provide the CORRECT ANSWER for every question
-- Limit to 2-5 most significant failures that group related errors
-- severity: "high" (fundamental gap), "medium" (specific misconception), "low" (careless)`;
+REMEMBER: Be proportionate. ${wrongQuestions.length} wrong out of ${grading.questionAnalysis.length} total. Calibrate severity accordingly.`;
+
+    const response = await this._callAI(systemPrompt, userPrompt, 6000);
+    return response;
   }
 
-  /**
-   * Create confirmed FailureSignal documents from analysis
-   */
+  // ═══════════════════════════════════════════════════════════════════
+  // Stage 3 — SYNTHESIZE
+  // Produce a student-friendly summary and prerequisite analysis.
+  // ═══════════════════════════════════════════════════════════════════
+
+  async _stageSynthesize(grading, diagnosis, learningScope) {
+    const correctCount = grading.questionAnalysis.filter(q => q.isCorrect).length;
+    const totalCount = grading.questionAnalysis.length;
+
+    const systemPrompt = `You write brief, encouraging summaries for students. The student is in ${learningScope.grade} (${learningScope.curriculum}, ${learningScope.country}).
+
+TONE: Friendly, supportive, honest. Lead with what they did well. Be specific about strengths. Then mention areas to work on without being harsh. This is a student — not a teacher report.`;
+
+    const userPrompt = `RESULTS: ${correctCount}/${totalCount} correct.
+
+STRENGTHS (topics they got right):
+${grading.questionAnalysis.filter(q => q.isCorrect).map(q => `- ${q.topic}: ${q.subtopic}`).join('\n') || '(none)'}
+
+${diagnosis.failures.length > 0 ? `AREAS TO WORK ON:
+${diagnosis.failures.map(f => `- ${f.specificIssue} (${f.severity} priority)`).join('\n')}` : 'No significant issues found!'}
+
+Return JSON:
+{
+  "summary": "2-4 sentence student-friendly summary. Lead with positives.",
+  "prerequisiteAnalysis": [
+    {
+      "failure": "the specificIssue string from the failure",
+      "prerequisiteChain": {
+        "currentTopic": "what they're struggling with",
+        "immediatePrerequisite": "what they need to know first (or null)",
+        "gapLevel": "which grade level the gap is from (or null)",
+        "testedPrerequisites": ["prerequisite concepts that were tested"]
+      }
+    }
+  ]
+}`;
+
+    const response = await this._callAI(systemPrompt, userPrompt, 2000);
+    return response;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Shared helpers
+  // ═══════════════════════════════════════════════════════════════════
+
+  async _callAI(systemPrompt, userPrompt, maxTokens) {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      max_tokens: maxTokens,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      response_format: { type: 'json_object' }
+    });
+
+    const text = response.choices[0].message.content.trim();
+    return JSON.parse(text);
+  }
+
   async createFailureSignals(sessionId, failures) {
     const failureSignals = [];
 
@@ -247,11 +291,7 @@ IMPORTANT:
     return failureSignals;
   }
 
-  /**
-   * Update session with analysis results
-   */
   async updateSessionWithAnalysis(session, analysis) {
-    // Update per-question analysis
     if (analysis.questionAnalysis) {
       for (const qa of analysis.questionAnalysis) {
         const question = session.extractedQuestions.find(
@@ -271,7 +311,6 @@ IMPORTANT:
       }
     }
 
-    // Update detected errors from failures
     if (analysis.failures) {
       for (const failure of analysis.failures) {
         for (const evidence of failure.evidence || []) {
