@@ -47,6 +47,7 @@ exports.analyzeSession = async (req, res) => {
       success: true,
       failures: analysis.failureSignals,
       detectedConcepts: analysis.detectedConcepts,
+      strengths: analysis.strengths || [],
       summary: analysis.summary,
       totalFailures: analysis.failureSignals.length
     });

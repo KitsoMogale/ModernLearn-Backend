@@ -34,11 +34,29 @@ exports.generateRemediation = async (req, res) => {
       });
     }
 
+    // Check if there are failures to remediate
+    const FailureSignal = require('../models/FailureSignal');
+    const failures = await FailureSignal.getConfirmed(session._id);
+
+    if (!failures || failures.length === 0) {
+      // No failures — student aced it
+      await session.updateStatus('remediation-generated');
+      return res.json({
+        success: true,
+        noFailures: true,
+        remediationUnits: [],
+        totalUnits: 0,
+        totalEstimatedTime: 0,
+        summary: session.analysisSummary || 'Great work! No issues found.'
+      });
+    }
+
     // Generate remediation plan
     const remediationUnits = await remediationGeneratorService.generateRemediationPlan(session);
 
     res.json({
       success: true,
+      noFailures: false,
       remediationUnits,
       totalUnits: remediationUnits.length,
       totalEstimatedTime: remediationUnits.reduce((sum, u) => sum + u.totalEstimatedTimeMinutes, 0)

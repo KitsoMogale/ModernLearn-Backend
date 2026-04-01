@@ -32,6 +32,9 @@ class CurriculumService {
 
   /**
    * Scan question text for keyword hints to identify likely topics.
+   * Covers multiple subjects — hints are best-effort and used to narrow
+   * which curriculum topics to inject into the AI prompt. If nothing
+   * matches, all topics are sent (the AI figures it out).
    */
   extractConceptHints(questions) {
     const text = questions.map(q =>
@@ -40,25 +43,70 @@ class CurriculumService {
 
     const hints = new Set();
 
-    // Common keyword → topic mapping (curriculum-agnostic)
+    // Multi-subject keyword → topic mapping
     const indicators = {
+      // ── Mathematics ──
       'factorise': 'algebra', 'factorize': 'algebra', 'factor': 'algebra',
       'simplify': 'algebra', 'expand': 'algebra', 'expression': 'algebra',
-      'equation': 'algebra', 'solve for': 'algebra', 'solve': 'algebra',
-      'inequality': 'algebra', 'simultaneous': 'algebra',
-      'exponent': 'exponents', 'power': 'exponents', 'surd': 'exponents', 'radical': 'exponents',
+      'equation': 'algebra', 'solve for': 'algebra', 'inequality': 'algebra',
+      'simultaneous': 'algebra',
+      'exponent': 'exponents', 'power': 'exponents', 'surd': 'exponents',
       'pattern': 'number patterns', 'sequence': 'number patterns', 'nth term': 'number patterns',
       'sin': 'trigonometry', 'cos': 'trigonometry', 'tan': 'trigonometry',
-      'angle': 'trigonometry', 'triangle': 'trigonometry',
+      'angle': 'trigonometry',
       'gradient': 'analytical geometry', 'midpoint': 'analytical geometry',
-      'distance formula': 'analytical geometry',
       'f(x)': 'functions', 'graph': 'functions', 'parabola': 'functions',
-      'hyperbola': 'functions', 'asymptote': 'functions',
       'interest': 'finance', 'compound': 'finance', 'depreciation': 'finance',
-      'probability': 'probability', 'event': 'probability',
+      'probability': 'probability',
       'mean': 'statistics', 'median': 'statistics', 'histogram': 'statistics',
       'congruent': 'geometry', 'parallel': 'geometry', 'theorem': 'geometry',
       'volume': 'measurement', 'surface area': 'measurement',
+
+      // ── Physical Sciences / Physics / Chemistry ──
+      'newton': 'mechanics', 'force': 'mechanics', 'acceleration': 'mechanics',
+      'velocity': 'mechanics', 'momentum': 'mechanics', 'friction': 'mechanics',
+      'energy': 'energy', 'kinetic': 'energy', 'potential': 'energy', 'joule': 'energy',
+      'wave': 'waves', 'frequency': 'waves', 'wavelength': 'waves', 'amplitude': 'waves',
+      'circuit': 'electricity', 'voltage': 'electricity', 'current': 'electricity',
+      'resistance': 'electricity', 'ohm': 'electricity',
+      'element': 'chemistry', 'compound': 'chemistry', 'reaction': 'chemistry',
+      'mole': 'stoichiometry', 'concentration': 'stoichiometry',
+      'acid': 'acids and bases', 'base': 'acids and bases', 'ph': 'acids and bases',
+      'periodic table': 'atomic structure', 'electron': 'atomic structure',
+
+      // ── Life Sciences / Biology ──
+      'cell': 'cell biology', 'mitosis': 'cell biology', 'meiosis': 'cell biology',
+      'dna': 'genetics', 'gene': 'genetics', 'allele': 'genetics', 'genotype': 'genetics',
+      'ecosystem': 'ecology', 'food chain': 'ecology', 'biodiversity': 'ecology',
+      'photosynthesis': 'plant biology', 'respiration': 'plant biology',
+      'evolution': 'evolution', 'natural selection': 'evolution',
+      'organ': 'human biology', 'nervous system': 'human biology', 'circulatory': 'human biology',
+
+      // ── Languages / English / Literature ──
+      'essay': 'writing', 'paragraph': 'writing', 'introduction': 'writing', 'conclusion': 'writing',
+      'grammar': 'language', 'tense': 'language', 'verb': 'language', 'noun': 'language',
+      'adjective': 'language', 'adverb': 'language', 'pronoun': 'language',
+      'comprehension': 'reading', 'passage': 'reading', 'extract': 'reading',
+      'metaphor': 'literary devices', 'simile': 'literary devices', 'personification': 'literary devices',
+      'alliteration': 'literary devices', 'imagery': 'literary devices',
+      'poem': 'poetry', 'stanza': 'poetry', 'rhyme': 'poetry',
+      'character': 'literature', 'theme': 'literature', 'plot': 'literature',
+
+      // ── Geography ──
+      'climate': 'climatology', 'weather': 'climatology', 'rainfall': 'climatology',
+      'erosion': 'geomorphology', 'river': 'geomorphology', 'mountain': 'geomorphology',
+      'population': 'human geography', 'urbanisation': 'human geography', 'migration': 'human geography',
+      'map': 'mapwork', 'contour': 'mapwork', 'scale': 'mapwork', 'bearing': 'mapwork',
+
+      // ── History ──
+      'war': 'conflict', 'battle': 'conflict', 'treaty': 'conflict',
+      'democracy': 'political history', 'apartheid': 'political history', 'revolution': 'political history',
+      'source': 'source analysis', 'bias': 'source analysis', 'evidence': 'source analysis',
+
+      // ── Accounting / Business ──
+      'debit': 'accounting', 'credit': 'accounting', 'ledger': 'accounting',
+      'balance sheet': 'financial statements', 'income statement': 'financial statements',
+      'asset': 'financial statements', 'liability': 'financial statements',
     };
 
     for (const [keyword, topic] of Object.entries(indicators)) {

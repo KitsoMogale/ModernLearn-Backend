@@ -7,16 +7,11 @@ const openai = new OpenAI({
 });
 
 /**
- * 3-Stage Procedural Diagnostic Analysis
+ * 3-Stage Procedural Diagnostic Analysis (Subject-Agnostic)
  *
- * Stage 1 — GRADE: For each question, work out the correct answer and mark the student's work.
- *           No failure grouping, no root cause — just honest marking.
- *
- * Stage 2 — DIAGNOSE: Given the marked questions, identify real misconceptions.
- *           Group related errors, find root causes, assign categories.
- *           Be generous: correct answer + sound method = correct, period.
- *
- * Stage 3 — SYNTHESIZE: Produce a student-friendly summary and prerequisite analysis.
+ * Stage 1 — GRADE: Mark each question. Note what the student did well AND what went wrong.
+ * Stage 2 — DIAGNOSE: Group wrong answers into failures. Be proportionate.
+ * Stage 3 — SYNTHESIZE: Strengths list, student-friendly summary, prerequisite analysis.
  */
 class DiagnosticAnalysisService {
 
@@ -32,23 +27,26 @@ class DiagnosticAnalysisService {
       const conceptHints = curriculumService.extractConceptHints(extractedQuestions);
       const curriculumContext = await curriculumService.getDiagnosticContext(learningScope, conceptHints);
 
+      const subject = learningScope.subject || 'the subject';
+
       // ── Stage 1: Grade each question ───────────────────────────────
       console.log('  Stage 1: Grading questions...');
-      const grading = await this._stageGrade(extractedQuestions, learningScope, curriculumContext);
+      const grading = await this._stageGrade(extractedQuestions, learningScope, curriculumContext, subject);
 
       // ── Stage 2: Diagnose failures ─────────────────────────────────
       console.log('  Stage 2: Diagnosing failures...');
-      const diagnosis = await this._stageDiagnose(grading, learningScope, curriculumContext);
+      const diagnosis = await this._stageDiagnose(grading, learningScope, curriculumContext, subject);
 
-      // ── Stage 3: Synthesize summary & prerequisites ────────────────
+      // ── Stage 3: Synthesize strengths, summary, prerequisites ──────
       console.log('  Stage 3: Synthesizing...');
-      const synthesis = await this._stageSynthesize(grading, diagnosis, learningScope);
+      const synthesis = await this._stageSynthesize(grading, diagnosis, learningScope, subject);
 
       // Merge into final analysis object
       const analysis = {
         questionAnalysis: grading.questionAnalysis,
         failures: diagnosis.failures || [],
         detectedConcepts: diagnosis.detectedConcepts || [],
+        strengths: synthesis.strengths || [],
         summary: synthesis.summary || ''
       };
 
@@ -71,6 +69,7 @@ class DiagnosticAnalysisService {
       return {
         failureSignals,
         detectedConcepts: analysis.detectedConcepts,
+        strengths: analysis.strengths,
         summary: analysis.summary
       };
     } catch (error) {
@@ -81,34 +80,36 @@ class DiagnosticAnalysisService {
 
   // ═══════════════════════════════════════════════════════════════════
   // Stage 1 — GRADE
-  // Mark each question: correct answer, is student right, brief note.
   // ═══════════════════════════════════════════════════════════════════
 
-  async _stageGrade(questions, learningScope, curriculumContext) {
+  async _stageGrade(questions, learningScope, curriculumContext, subject) {
     const questionsText = questions.map(q => {
       let text = `Q${q.questionNumber}: ${q.questionText}\n  Student answer: ${q.studentAnswer || '(blank)'}`;
       if (q.structure?.hasDiagram) text += '\n  [contains diagram]';
       if (q.structure?.hasTable) text += '\n  [contains table]';
+      if (q.structure?.hasMultipleChoice) text += '\n  [multiple choice]';
       return text;
     }).join('\n\n');
 
-    const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.grade} ${learningScope.subject || 'Mathematics'} marker in ${learningScope.country}.
+    const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.grade} ${subject} marker in ${learningScope.country}.
 
 Your ONLY job is to MARK each question. For each question:
 - Work out the correct answer using ${learningScope.curriculum}-approved methods
 - Decide: is the student's answer correct, partially correct, or incorrect?
-- Write a brief note on what happened
+- Note what the student did WELL (even in wrong answers — partial credit matters)
+- Note what went wrong (if anything)
 
 ${curriculumContext ? `CURRICULUM REFERENCE:\n${curriculumContext}\n` : ''}
 MARKING PHILOSOPHY — READ CAREFULLY:
 - A correct final answer with reasonable working = CORRECT. Do not nitpick.
-- If the student used a valid alternative method (not the textbook method), that is still correct.
-- Minor notation differences (e.g. brackets vs no brackets around a single-term answer) are NOT errors.
-- Only mark something wrong if the answer itself is wrong or the reasoning has a genuine flaw.
-- "Partially correct" means the student showed understanding but made a real mistake along the way.
-- Do NOT manufacture errors. If the work is correct, say so and move on.`;
+- If the student used a valid alternative method, that is still correct.
+- Minor notation or formatting differences are NOT errors.
+- Only mark wrong if the answer itself is wrong or the reasoning has a genuine flaw.
+- "Partially correct" = student showed understanding but made a real mistake.
+- Do NOT manufacture errors. If the work is correct, say so.
+- ALWAYS note something positive — what skill or understanding did they demonstrate?`;
 
-    const userPrompt = `Mark these ${learningScope.grade} ${learningScope.subject || 'Mathematics'} answers:
+    const userPrompt = `Mark these ${learningScope.grade} ${subject} answers:
 
 ${questionsText}
 
@@ -117,60 +118,63 @@ Return JSON:
   "questionAnalysis": [
     {
       "questionNumber": "1",
-      "topic": "e.g. Algebra",
-      "subtopic": "e.g. Factorisation",
-      "skillId": "e.g. ALG-FAC-001 or null if unknown",
+      "topic": "the topic area",
+      "subtopic": "specific subtopic",
+      "skillId": "skill ID from curriculum if known, else null",
       "correctAnswer": "the correct answer",
       "isCorrect": true,
       "isPartiallyCorrect": false,
       "conceptsTested": ["concept1", "concept2"],
-      "notes": "Brief note — what the student did, what went right or wrong"
+      "whatWentWell": "What the student did correctly — be specific (e.g. 'correctly identified the key variables', 'used the right method', 'good working shown'). Always say something positive, even if the final answer was wrong.",
+      "whatWentWrong": "What went wrong, or null if nothing",
+      "notes": "Brief overall note"
     }
   ]
 }
 
-IMPORTANT: Be fair and generous. Students deserve credit for correct work.`;
+IMPORTANT: Be fair and generous. Students deserve credit for correct work. Always fill in whatWentWell — find something positive even in wrong answers.`;
 
-    const response = await this._callAI(systemPrompt, userPrompt, 4000);
-    return response;
+    return await this._callAI(systemPrompt, userPrompt, 5000);
   }
 
   // ═══════════════════════════════════════════════════════════════════
   // Stage 2 — DIAGNOSE
-  // Given the grading, identify real failures and group them.
   // ═══════════════════════════════════════════════════════════════════
 
-  async _stageDiagnose(grading, learningScope, curriculumContext) {
-    // Only pass through incorrect/partial questions for diagnosis
+  async _stageDiagnose(grading, learningScope, curriculumContext, subject) {
     const wrongQuestions = grading.questionAnalysis.filter(q => !q.isCorrect);
 
     if (wrongQuestions.length === 0) {
-      return { failures: [], detectedConcepts: grading.questionAnalysis.flatMap(q => q.conceptsTested || []) };
+      return {
+        failures: [],
+        detectedConcepts: grading.questionAnalysis.flatMap(q => q.conceptsTested || [])
+      };
     }
 
     const correctQuestions = grading.questionAnalysis.filter(q => q.isCorrect);
 
-    const systemPrompt = `You are an educational diagnostician. You are given the marked results of a ${learningScope.grade} ${learningScope.subject || 'Mathematics'} test (${learningScope.curriculum}, ${learningScope.country}).
+    const systemPrompt = `You are an educational diagnostician. You are given the marked results of a ${learningScope.grade} ${subject} test (${learningScope.curriculum}, ${learningScope.country}).
 
 Your job: look at the INCORRECT answers and figure out WHY the student got them wrong. Group related errors into failures.
 
 ${curriculumContext ? `CURRICULUM REFERENCE:\n${curriculumContext}\n` : ''}
 DIAGNOSTIC PRINCIPLES:
 - Focus on genuine misconceptions and skill gaps, not minor slips.
-- If only one question shows an issue and it could easily be a careless slip, classify it as "careless-execution" with LOW severity — do not inflate it.
-- Group related errors together. Two sign errors in distribution = one failure, not two.
-- Maximum 4 failures. If the student only got 1-2 wrong, 1 failure is fine.
-- Severity should reflect impact: "high" = fundamental gap affecting many problems, "medium" = specific misconception, "low" = isolated careless mistake.
-- Look at what the student got RIGHT to calibrate — if they solved 8/10 correctly, the 2 wrong ones are likely minor issues, not deep gaps.`;
+- If only one question shows an issue and it could be a careless slip, classify as "careless-execution" with LOW severity.
+- Group related errors. Similar mistakes = one failure, not many.
+- Maximum 4 failures. 1-2 wrong answers = 1 failure is fine.
+- Severity reflects impact: "high" = fundamental gap, "medium" = specific misconception, "low" = isolated careless mistake.
+- Calibrate against what the student got RIGHT. Strong performance overall means remaining errors are likely minor.
+- This applies to ANY subject — not just maths. Adapt your categories to fit ${subject}.`;
 
     const userPrompt = `INCORRECT ANSWERS (need diagnosis):
 ${wrongQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]:
   Correct answer: ${q.correctAnswer}
-  Student got: (marked wrong)
-  Notes: ${q.notes}`).join('\n\n')}
+  What went well: ${q.whatWentWell || 'N/A'}
+  What went wrong: ${q.whatWentWrong || q.notes}`).join('\n\n')}
 
 ${correctQuestions.length > 0 ? `\nCORRECT ANSWERS (context — student DID get these right):
-${correctQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]: Correct`).join('\n')}` : ''}
+${correctQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]: Correct — ${q.whatWentWell || 'good work'}`).join('\n')}` : ''}
 
 Total: ${grading.questionAnalysis.length} questions, ${correctQuestions.length} correct, ${wrongQuestions.length} incorrect.
 
@@ -200,36 +204,47 @@ Return JSON:
   "detectedConcepts": ["all concepts seen across the test"]
 }
 
-REMEMBER: Be proportionate. ${wrongQuestions.length} wrong out of ${grading.questionAnalysis.length} total. Calibrate severity accordingly.`;
+REMEMBER: Be proportionate. ${wrongQuestions.length} wrong out of ${grading.questionAnalysis.length} total.`;
 
-    const response = await this._callAI(systemPrompt, userPrompt, 6000);
-    return response;
+    return await this._callAI(systemPrompt, userPrompt, 6000);
   }
 
   // ═══════════════════════════════════════════════════════════════════
   // Stage 3 — SYNTHESIZE
-  // Produce a student-friendly summary and prerequisite analysis.
+  // Strengths, summary, prerequisite analysis.
   // ═══════════════════════════════════════════════════════════════════
 
-  async _stageSynthesize(grading, diagnosis, learningScope) {
+  async _stageSynthesize(grading, diagnosis, learningScope, subject) {
     const correctCount = grading.questionAnalysis.filter(q => q.isCorrect).length;
     const totalCount = grading.questionAnalysis.length;
 
-    const systemPrompt = `You write brief, encouraging summaries for students. The student is in ${learningScope.grade} (${learningScope.curriculum}, ${learningScope.country}).
+    // Collect all the positive notes
+    const positiveNotes = grading.questionAnalysis
+      .filter(q => q.whatWentWell)
+      .map(q => `Q${q.questionNumber} [${q.topic}]: ${q.whatWentWell}`);
 
-TONE: Friendly, supportive, honest. Lead with what they did well. Be specific about strengths. Then mention areas to work on without being harsh. This is a student — not a teacher report.`;
+    const systemPrompt = `You write brief, encouraging feedback for students. The student is in ${learningScope.grade} studying ${subject} (${learningScope.curriculum}, ${learningScope.country}).
+
+TONE: Friendly, supportive, honest. Like a good tutor — celebrate real achievements, be specific about what they did well, and gently point out what to work on. This is a student, not a professional report.`;
 
     const userPrompt = `RESULTS: ${correctCount}/${totalCount} correct.
 
-STRENGTHS (topics they got right):
-${grading.questionAnalysis.filter(q => q.isCorrect).map(q => `- ${q.topic}: ${q.subtopic}`).join('\n') || '(none)'}
+POSITIVE OBSERVATIONS FROM MARKING:
+${positiveNotes.join('\n') || '(no specific notes)'}
 
 ${diagnosis.failures.length > 0 ? `AREAS TO WORK ON:
 ${diagnosis.failures.map(f => `- ${f.specificIssue} (${f.severity} priority)`).join('\n')}` : 'No significant issues found!'}
 
 Return JSON:
 {
-  "summary": "2-4 sentence student-friendly summary. Lead with positives.",
+  "strengths": [
+    {
+      "skill": "Short name of what they did well (e.g. 'Setting up equations', 'Paragraph structure', 'Data interpretation')",
+      "detail": "Specific praise — what exactly did they do that shows this strength? Reference actual questions.",
+      "topic": "Which topic area this falls under"
+    }
+  ],
+  "summary": "2-4 sentence student-friendly summary. Lead with positives. Be specific about what they nailed.",
   "prerequisiteAnalysis": [
     {
       "failure": "the specificIssue string from the failure",
@@ -241,10 +256,15 @@ Return JSON:
       }
     }
   ]
-}`;
+}
 
-    const response = await this._callAI(systemPrompt, userPrompt, 2000);
-    return response;
+STRENGTHS GUIDELINES:
+- Include 2-5 strengths. More correct answers = more strengths to highlight.
+- Be SPECIFIC — not "good at algebra" but "correctly applied the distributive property across all bracket questions".
+- Even if the student got most questions wrong, find at least 1-2 strengths (correct steps within wrong answers, good attempt at method, etc.).
+- Adapt to ${subject} — these could be analytical skills, writing skills, scientific reasoning, mathematical operations, etc.`;
+
+    return await this._callAI(systemPrompt, userPrompt, 3000);
   }
 
   // ═══════════════════════════════════════════════════════════════════
