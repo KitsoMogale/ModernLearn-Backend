@@ -122,7 +122,15 @@ IMPORTANT:
 - Mark hasTable if there's tabular data
 - Mark hasEquations if mathematical expressions are present
 - Leave detectedConcepts and detectedErrors empty for now (filled in analysis stage)
-- Return ONLY valid JSON, no additional text`
+- Return ONLY valid JSON, no additional text
+
+MATH/SCIENCE FORMATTING:
+- Wrap ALL mathematical expressions, equations, formulae, and scientific notation in LaTeX $ delimiters
+- Examples: $x^2 + 3x - 5 = 0$, $\\frac{1}{2}$, $\\sqrt{16}$, $2^3 = 8$, $\\sin(30°)$
+- Use $...$ for inline math within question text and student answers
+- This applies to question text, student answers, and any extracted working/steps
+- Do NOT use $ delimiters for plain numbers (e.g. "Question 3" stays plain) — only for mathematical expressions
+- For non-math subjects (languages, history, etc.), just use plain text`
         }],
         response_format: { type: 'json_object' }
       });

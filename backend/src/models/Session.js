@@ -68,7 +68,10 @@ const aiAnalysisSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 1
-  }
+  },
+  isCorrect: Boolean,
+  questionRequires: String,
+  expectedApproach: String
 }, { _id: false });
 
 const extractedQuestionSchema = new mongoose.Schema({

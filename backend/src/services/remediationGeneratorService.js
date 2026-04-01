@@ -96,7 +96,7 @@ class RemediationGeneratorService {
    */
   buildRemediationPrompt(session, failure, priority, totalFailures, curriculumContext = null) {
     const evidenceText = failure.evidence.map(e =>
-      `Q${e.questionNumber}: Student wrote "${e.studentAnswer}" — correct is "${e.correctAnswer || 'unknown'}"\n  Analysis: ${e.reasoning}`
+      `Q${e.questionNumber}:${e.questionRequires ? ` [Required: ${e.questionRequires}]` : ''}\n  Student wrote: "${e.studentAnswer}" — correct: "${e.correctAnswer || 'unknown'}"\n  Analysis: ${e.reasoning}`
     ).join('\n');
 
     return `CREATE A REMEDIATION PLAN
@@ -172,7 +172,9 @@ ${curriculumContext ? `CURRICULUM CONTEXT (use this as ground truth):\n${curricu
 - Steps should be SPECIFIC (not "review the topic" — say exactly what to review and which method to practice)
 - Practice problems should progress from easy to hard
 - Total time: 15-45 minutes per unit
-- Write the diagnosis in a friendly, encouraging tone directed at the student`;
+- Write the diagnosis in a friendly, encouraging tone directed at the student
+
+FORMATTING: Use LaTeX in $ delimiters for mathematical/scientific expressions in questions, answers, hints, and step descriptions (e.g. $x^2 + 3x - 5$, $\\frac{1}{2}$, $\\sqrt{x}$). For non-math subjects, use plain text.`;
   }
 
   /**

@@ -20,6 +20,8 @@ const evidenceSchema = new mongoose.Schema({
   },
   studentAnswer: String,
   correctAnswer: String,
+  questionRequires: String,
+  expectedApproach: String,
   reasoning: String
 }, { _id: false });
 

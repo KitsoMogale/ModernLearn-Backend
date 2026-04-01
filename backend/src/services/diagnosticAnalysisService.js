@@ -60,8 +60,8 @@ class DiagnosticAnalysisService {
         }
       }
 
-      // Create FailureSignal documents
-      const failureSignals = await this.createFailureSignals(session._id, analysis.failures);
+      // Create FailureSignal documents (pass grading for evidence enrichment)
+      const failureSignals = await this.createFailureSignals(session._id, analysis.failures, analysis.questionAnalysis);
 
       // Update session
       await this.updateSessionWithAnalysis(session, analysis);
@@ -94,6 +94,8 @@ class DiagnosticAnalysisService {
     const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.grade} ${subject} marker in ${learningScope.country}.
 
 Your ONLY job is to MARK each question. For each question:
+- First, identify what the question is ASKING the student to do (e.g. "Factorise", "Solve for x", "Explain why...", "Calculate the area")
+- Identify the expected method or approach (e.g. "Common factor then trinomial", "Apply the quadratic formula", "Use evidence from the passage")
 - Work out the correct answer using ${learningScope.curriculum}-approved methods
 - Decide: is the student's answer correct, partially correct, or incorrect?
 - Note what the student did WELL (even in wrong answers — partial credit matters)
@@ -107,7 +109,9 @@ MARKING PHILOSOPHY — READ CAREFULLY:
 - Only mark wrong if the answer itself is wrong or the reasoning has a genuine flaw.
 - "Partially correct" = student showed understanding but made a real mistake.
 - Do NOT manufacture errors. If the work is correct, say so.
-- ALWAYS note something positive — what skill or understanding did they demonstrate?`;
+- ALWAYS note something positive — what skill or understanding did they demonstrate?
+
+FORMATTING: When writing mathematical expressions, formulae, or scientific notation, use LaTeX wrapped in $ delimiters for inline (e.g. $x^2 + 3x - 5$) or $$ for display. This applies to correctAnswer, notes, whatWentWell, whatWentWrong. For non-math subjects, just use plain text.`;
 
     const userPrompt = `Mark these ${learningScope.grade} ${subject} answers:
 
@@ -121,6 +125,8 @@ Return JSON:
       "topic": "the topic area",
       "subtopic": "specific subtopic",
       "skillId": "skill ID from curriculum if known, else null",
+      "questionRequires": "What the question is asking the student to DO — the action/task (e.g. 'Factorise the trinomial', 'Solve for x', 'Identify the theme', 'Balance the equation', 'Explain the effect of...')",
+      "expectedApproach": "The method or steps needed to answer correctly (e.g. 'Find common factor, then apply difference of squares', 'Use quadratic formula since it doesn't factorise neatly', 'Reference textual evidence and explain its significance')",
       "correctAnswer": "the correct answer",
       "isCorrect": true,
       "isPartiallyCorrect": false,
@@ -132,7 +138,7 @@ Return JSON:
   ]
 }
 
-IMPORTANT: Be fair and generous. Students deserve credit for correct work. Always fill in whatWentWell — find something positive even in wrong answers.`;
+IMPORTANT: Be fair and generous. Students deserve credit for correct work. Always fill in whatWentWell — find something positive even in wrong answers. Always fill in questionRequires and expectedApproach — these anchor the entire analysis.`;
 
     return await this._callAI(systemPrompt, userPrompt, 5000);
   }
@@ -165,16 +171,20 @@ DIAGNOSTIC PRINCIPLES:
 - Maximum 4 failures. 1-2 wrong answers = 1 failure is fine.
 - Severity reflects impact: "high" = fundamental gap, "medium" = specific misconception, "low" = isolated careless mistake.
 - Calibrate against what the student got RIGHT. Strong performance overall means remaining errors are likely minor.
-- This applies to ANY subject — not just maths. Adapt your categories to fit ${subject}.`;
+- This applies to ANY subject — not just maths. Adapt your categories to fit ${subject}.
+
+FORMATTING: Use LaTeX in $ delimiters for any mathematical/scientific expressions in evidence (e.g. studentAnswer, correctAnswer, reasoning). For non-math subjects, use plain text.`;
 
     const userPrompt = `INCORRECT ANSWERS (need diagnosis):
 ${wrongQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]:
+  Question required: ${q.questionRequires || 'N/A'}
+  Expected approach: ${q.expectedApproach || 'N/A'}
   Correct answer: ${q.correctAnswer}
   What went well: ${q.whatWentWell || 'N/A'}
   What went wrong: ${q.whatWentWrong || q.notes}`).join('\n\n')}
 
 ${correctQuestions.length > 0 ? `\nCORRECT ANSWERS (context — student DID get these right):
-${correctQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]: Correct — ${q.whatWentWell || 'good work'}`).join('\n')}` : ''}
+${correctQuestions.map(q => `Q${q.questionNumber} [${q.topic} → ${q.subtopic}]: ${q.questionRequires || q.topic} — Correct — ${q.whatWentWell || 'good work'}`).join('\n')}` : ''}
 
 Total: ${grading.questionAnalysis.length} questions, ${correctQuestions.length} correct, ${wrongQuestions.length} incorrect.
 
@@ -286,10 +296,26 @@ STRENGTHS GUIDELINES:
     return JSON.parse(text);
   }
 
-  async createFailureSignals(sessionId, failures) {
+  async createFailureSignals(sessionId, failures, questionAnalysis = []) {
     const failureSignals = [];
 
+    // Build lookup from grading data for evidence enrichment
+    const gradingByQuestion = {};
+    for (const qa of questionAnalysis) {
+      gradingByQuestion[qa.questionNumber] = qa;
+    }
+
     for (const failure of failures) {
+      // Enrich each evidence entry with questionRequires/expectedApproach from grading
+      const enrichedEvidence = (failure.evidence || []).map(ev => {
+        const grading = gradingByQuestion[ev.questionNumber];
+        return {
+          ...ev,
+          questionRequires: ev.questionRequires || grading?.questionRequires || null,
+          expectedApproach: ev.expectedApproach || grading?.expectedApproach || null,
+        };
+      });
+
       const signal = await FailureSignal.create({
         sessionId,
         category: failure.category,
@@ -297,7 +323,7 @@ STRENGTHS GUIDELINES:
         rootCause: failure.rootCause,
         misconceptionDescription: failure.misconceptionDescription || null,
         detectedConcepts: failure.detectedConcepts || [],
-        evidence: failure.evidence || [],
+        evidence: enrichedEvidence,
         confidence: failure.confidence || 0.8,
         confirmedByAnalysis: true,
         severity: failure.severity || 'medium',
@@ -327,6 +353,8 @@ STRENGTHS GUIDELINES:
 
           question.aiAnalysis.detectedConcepts = qa.conceptsTested || [];
           question.aiAnalysis.isCorrect = qa.isCorrect;
+          question.aiAnalysis.questionRequires = qa.questionRequires || null;
+          question.aiAnalysis.expectedApproach = qa.expectedApproach || null;
         }
       }
     }
