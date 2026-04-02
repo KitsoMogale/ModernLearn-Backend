@@ -1,0 +1,285 @@
+{
+  "curriculumCode": "CAPS",
+  "meta": {
+    "country": "South Africa",
+    "curriculum": "CAPS",
+    "grade": "Grade 10",
+    "subject": "Life Sciences",
+    "notation": [
+      "Use the 'therefore' symbol (∴) before final answers where applicable",
+      "Use decimal point (not comma) for decimals",
+      "Diagrams must be drawn with pencil and labelled clearly",
+      "Use scientific terminology accurately"
+    ],
+    "markingStandards": [
+      "Full marks require correct scientific terminology, clear diagrams with labels and headings, and all steps shown where required",
+      "Method marks for correct approach and reasoning",
+      "Diagrams assessed for accuracy, proportion, labels and captions",
+      "Consistent accuracy marks apply across related questions"
+    ],
+    "terminology": [
+      { "term": "describe", "note": "Give a detailed account in words or diagrams" },
+      { "term": "explain", "note": "Give reasons for a phenomenon or process" },
+      { "term": "compare", "note": "Point out similarities and differences" },
+      { "term": "tabulate", "note": "Present information in a table format" }
+    ],
+    "assessmentFormat": "Two examination papers: Paper 1 focuses on Knowledge Strands 1 and 2 (Life at the molecular, cellular and tissue level; Life processes in plants and animals). Paper 2 focuses on Knowledge Strands 3 and 4 (Environmental studies; Diversity, change and continuity). Practical tasks and investigations are also assessed."
+  },
+  "topics": [
+    {
+      "topic": "Introduction to Life Sciences",
+      "subtopics": [
+        {
+          "name": "Life Sciences Orientation",
+          "skillId": "LS-INTRO-G10",
+          "skills": [
+            "Understand the nature and scope of Life Sciences",
+            "Explain the scientific method and its application in Life Sciences",
+            "Identify important principles and relationships in Life Sciences",
+            "Recognise the value of indigenous knowledge systems in Life Sciences"
+          ],
+          "methods": [
+            "Apply the steps of the scientific method (observation, hypothesis, experiment, conclusion)",
+            "Distinguish between qualitative and quantitative data"
+          ],
+          "commonSteps": [
+            "Observe a phenomenon",
+            "Formulate a testable hypothesis",
+            "Design and conduct a simple investigation",
+            "Analyse results and draw conclusions"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Life at the Molecular, Cellular and Tissue Level",
+      "subtopics": [
+        {
+          "name": "The Chemistry of Life",
+          "skillId": "LS-CHEM-G10",
+          "skills": [
+            "Distinguish between inorganic and organic compounds important for life",
+            "Describe the role and functions of water, minerals and vitamins",
+            "Explain the structure and functions of organic compounds: carbohydrates, lipids, proteins and nucleic acids",
+            "Discuss deficiency diseases related to nutrients and the importance of a balanced diet"
+          ],
+          "methods": [
+            "Analyse nutritional information on food packaging",
+            "Link chemical properties to biological functions"
+          ],
+          "commonSteps": [
+            "Identify the molecule type",
+            "Describe its building blocks and structure",
+            "Explain its role in living organisms"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Cells: The Basic Unit of Life",
+          "skillId": "LS-CELL-G10",
+          "skills": [
+            "Compare the structure of plant and animal cells",
+            "Describe the structure and functions of cell organelles",
+            "Explain the role of the cell membrane in movement of substances (diffusion, osmosis, active transport)",
+            "Discuss cell differentiation and specialisation"
+          ],
+          "methods": [
+            "Use microscope or micrographs to observe cells",
+            "Draw and label plant and animal cells accurately"
+          ],
+          "commonSteps": [
+            "Observe and identify structures",
+            "Link structure to function",
+            "Explain movement across membranes"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Cell Division: Mitosis",
+          "skillId": "LS-MITOSIS-G10",
+          "skills": [
+            "Describe the process of mitosis and its importance",
+            "Identify and describe the stages of mitosis",
+            "Explain the role of mitosis in growth, repair and asexual reproduction",
+            "Discuss the uncontrolled division of cells (cancer)"
+          ],
+          "methods": [
+            "Observe prepared slides or diagrams of mitotic cells"
+          ],
+          "commonSteps": [
+            "Identify the stage of mitosis from diagrams or slides",
+            "Describe events in each stage",
+            "Explain biological significance"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Plant and Animal Tissues",
+          "skillId": "LS-TISSUES-G10",
+          "skills": [
+            "Describe the structure and functions of plant tissues (meristematic, epidermal, parenchyma, collenchyma, sclerenchyma, xylem, phloem)",
+            "Describe the structure and functions of animal tissues (epithelial, connective, muscle, nervous)",
+            "Explain how tissues are organised into organs"
+          ],
+          "methods": [
+            "Observe and draw tissues using microscope or micrographs"
+          ],
+          "commonSteps": [
+            "Classify tissues as simple or complex",
+            "Link cell structure to tissue function"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Life Processes in Plants and Animals",
+      "subtopics": [
+        {
+          "name": "Support and Transport Systems in Plants",
+          "skillId": "LS-PLANT-SUPPORT-G10",
+          "skills": [
+            "Describe the anatomy of dicotyledonous root and stem",
+            "Explain secondary growth and the formation of annual rings",
+            "Describe the uptake and transport of water and minerals",
+            "Explain transpiration and factors affecting it"
+          ],
+          "methods": [
+            "Draw and label cross-sections of root and stem",
+            "Investigate transpiration rate"
+          ],
+          "commonSteps": [
+            "Identify tissues in diagrams",
+            "Explain movement of substances"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Support Systems in Animals",
+          "skillId": "LS-ANIMAL-SUPPORT-G10",
+          "skills": [
+            "Compare the human skeleton with endoskeletons and exoskeletons of other animals",
+            "Describe the structure and functions of the human skeletal system",
+            "Explain joint types and their role in movement",
+            "Discuss locomotion in animals"
+          ],
+          "methods": [
+            "Compare different skeletal systems"
+          ],
+          "commonSteps": [
+            "Identify bones and joints",
+            "Link structure to function"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "Transport System in Mammals (Humans)",
+          "skillId": "LS-CIRCULATORY-G10",
+          "skills": [
+            "Describe the structure and functions of the human heart and blood vessels",
+            "Explain the cardiac cycle and blood circulation (systemic and pulmonary)",
+            "Describe the composition and functions of blood",
+            "Discuss cardiovascular diseases and their prevention"
+          ],
+          "methods": [
+            "Draw and label the heart and blood circulation diagrams"
+          ],
+          "commonSteps": [
+            "Trace the path of blood",
+            "Explain exchange at capillaries"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Environmental Studies",
+      "subtopics": [
+        {
+          "name": "Biosphere to Ecosystems",
+          "skillId": "LS-ECOSYSTEM-G10",
+          "skills": [
+            "Define the biosphere, biomes and ecosystems",
+            "Describe the abiotic and biotic components of an ecosystem",
+            "Explain energy flow through food chains and food webs",
+            "Describe nutrient cycles (water, carbon, nitrogen)",
+            "Discuss the importance of biodiversity and threats to ecosystems"
+          ],
+          "methods": [
+            "Construct food chains and food webs",
+            "Investigate a local ecosystem"
+          ],
+          "commonSteps": [
+            "Identify producers, consumers and decomposers",
+            "Explain cycling of matter and flow of energy"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    },
+    {
+      "topic": "Diversity, Change and Continuity",
+      "subtopics": [
+        {
+          "name": "Biodiversity and Classification",
+          "skillId": "LS-BIODIV-G10",
+          "skills": [
+            "Explain the concept of biodiversity",
+            "Describe the five-kingdom classification system",
+            "Classify organisms according to observable features",
+            "Discuss the importance of classification and binomial nomenclature"
+          ],
+          "methods": [
+            "Use dichotomous keys for classification"
+          ],
+          "commonSteps": [
+            "Group organisms by shared characteristics",
+            "Apply binomial naming system"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        },
+        {
+          "name": "History of Life on Earth",
+          "skillId": "LS-EVOLUTION-G10",
+          "skills": [
+            "Describe key events in the history of life on Earth",
+            "Explain evidence for evolution (fossils, biogeography, comparative anatomy)",
+            "Discuss mass extinctions and their causes",
+            "Interpret geological time scale"
+          ],
+          "methods": [
+            "Analyse fossil evidence"
+          ],
+          "commonSteps": [
+            "Sequence major evolutionary events",
+            "Link evidence to evolutionary theory"
+          ],
+          "prerequisites": [],
+          "notation": [],
+          "keyFormulae": []
+        }
+      ]
+    }
+  ]
+}

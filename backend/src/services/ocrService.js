@@ -44,7 +44,7 @@ class OCRService {
             },
             {
               type: 'text',
-              text: 'Extract all text from this test/exam image. Include:\n- Question numbers\n- Question text\n- Any diagrams or tables (describe them)\n- Student answers (handwritten or printed)\n- Multiple choice options if present\n\nReturn the raw extracted text exactly as it appears.'
+              text: 'Extract all text from this test/exam image. Include:\n- Question numbers\n- Question text\n- Any diagrams or tables (describe them)\n- Student answers (handwritten or printed)\n- Multiple choice options if present\n\nReturn the raw extracted text exactly as it appears.\n\nCRITICAL RULES:\n- ONLY extract text that is ACTUALLY VISIBLE in the image. Do NOT invent, guess, or generate any questions or answers.\n- If part of the image is unclear, blurry, or cut off, note it as "[unclear]" or "[cut off]" — do NOT fill in what you think it might say.\n- If no student answer is visible for a question, leave it blank — do NOT generate a sample answer.\n- If you cannot read something, say so. Never fabricate content to fill gaps.'
             }
           ]
         }]
@@ -122,7 +122,16 @@ IMPORTANT:
 - Mark hasTable if there's tabular data
 - Mark hasEquations if mathematical expressions are present
 - Leave detectedConcepts and detectedErrors empty for now (filled in analysis stage)
+- Leave correctAnswer as null — do NOT fill it in or guess it
 - Return ONLY valid JSON, no additional text
+
+ABSOLUTELY DO NOT:
+- Invent or generate questions that are not in the extracted text
+- Fabricate or guess student answers — if no answer is visible, set studentAnswer to ""
+- Create sample/example content to "fill in" missing data
+- Add questions you think "should" be on the test
+- Guess what cut-off or illegible text says — use "" and give low confidence instead
+- You are an EXTRACTOR, not a GENERATOR. Only return what was actually in the image.
 
 MATH/SCIENCE FORMATTING:
 - Wrap ALL mathematical expressions, equations, formulae, and scientific notation in LaTeX $ delimiters
