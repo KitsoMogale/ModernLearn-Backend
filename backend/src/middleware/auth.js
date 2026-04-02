@@ -26,19 +26,21 @@ const authenticate = async (req, res, next) => {
       name = decodedToken.name;
     }
 
-    // Find or create user
-    let user = await User.findOne({ firebaseUid: uid });
+    // Find or create user (use findOneAndUpdate to combine find + lastLogin in one query)
+    let user = await User.findOneAndUpdate(
+      { firebaseUid: uid },
+      { $set: { lastLoginAt: new Date() } },
+      { new: true }
+    );
 
     if (!user) {
       user = await User.create({
         firebaseUid: uid,
         email: email,
-        displayName: name
+        displayName: name,
+        lastLoginAt: new Date()
       });
     }
-
-    // Update last login
-    await user.updateLastLogin();
 
     // Attach user info to request
     req.user = {

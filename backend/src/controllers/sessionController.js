@@ -10,7 +10,6 @@ const path = require('path');
 exports.createSession = async (req, res) => {
   try {
     const { learningScope, title } = req.body;
-    const userId = req.user.uid; // From auth middleware
 
     // Validate learningScope
     if (!learningScope || !learningScope.grade || !learningScope.curriculum || !learningScope.country) {
@@ -20,26 +19,19 @@ exports.createSession = async (req, res) => {
       });
     }
 
-    // Find or create user
-    let user = await User.findByFirebaseUid(userId);
-    if (!user) {
-      user = await User.create({
-        firebaseUid: userId,
-        email: req.user.email,
-        displayName: req.user.name
-      });
-    }
+    // User already resolved by auth middleware
+    const userId = req.user.mongoId;
 
     // Create session
     const session = await Session.create({
-      userId: user._id,
+      userId,
       title: title || `Session ${new Date().toLocaleDateString()}`,
       learningScope,
       status: 'created'
     });
 
-    // Add session to user
-    await user.addSession(session._id);
+    // Add session to user (non-blocking — don't wait for it)
+    User.findByIdAndUpdate(userId, { $push: { sessions: session._id } }).catch(() => {});
 
     res.status(201).json({
       success: true,
