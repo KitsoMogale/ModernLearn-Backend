@@ -1,68 +1,93 @@
 const mongoose = require('mongoose');
 
-const REMEDIATION_TYPES = [
-  'concept-review',      // Re-learn misunderstood concept
-  'practice-problems',   // Apply learning with exercises
-  'prerequisite-work',   // Fill foundational gaps
-  'boundary-testing'     // Master edge cases
+// ═══════════════════════════════════════════════════════════════════
+// Remediation Groups — each drives a different prompt + UI layout
+// ═══════════════════════════════════════════════════════════════════
+//
+// understand-gap    → Conceptual/prerequisite gaps. Points student to what to study.
+// fix-process       → Procedural/rule/execution errors. Quick rule reminder + targeted drill.
+// rethink-approach  → Strategic/reasoning errors. Approach comparison + recognition exercises.
+// quick-check       → Careless slips. Flags the slip + self-review checklist.
+
+const REMEDIATION_GROUPS = [
+  'understand-gap',
+  'fix-process',
+  'rethink-approach',
+  'quick-check'
 ];
 
+// Which failure categories map to which remediation group
+const CATEGORY_TO_GROUP = {
+  'conceptual-understanding': 'understand-gap',
+  'prerequisite-gap':         'understand-gap',
+  'representation-interpretation': 'understand-gap',
+  'procedural-execution':     'fix-process',
+  'rule-application':         'fix-process',
+  'quantitative-execution':   'fix-process',
+  'strategic-approach':       'rethink-approach',
+  'problem-interpretation':   'rethink-approach',
+  'logical-reasoning':        'rethink-approach',
+  'careless-execution':       'quick-check',
+};
+
+// ── Shared sub-schemas ──
+
 const learningStepSchema = new mongoose.Schema({
-  stepNumber: {
-    type: Number,
-    required: true
-  },
-  description: {
-    type: String,
-    required: true
-  },
-  estimatedTimeMinutes: {
-    type: Number,
-    required: true
-  },
+  stepNumber: { type: Number, required: true },
+  description: { type: String, required: true },
+  estimatedTimeMinutes: { type: Number, required: true },
   resources: [String],
-  completed: {
-    type: Boolean,
-    default: false
-  },
+  completed: { type: Boolean, default: false },
   completedAt: Date
 }, { _id: false });
 
 const practiceProblemSchema = new mongoose.Schema({
-  problemNumber: {
-    type: Number,
-    required: true
-  },
-  question: {
-    type: String,
-    required: true
-  },
+  problemNumber: { type: Number, required: true },
+  question: { type: String, required: true },
   correctAnswer: String,
   hint: String,
-  difficulty: {
-    type: String,
-    enum: ['easy', 'medium', 'hard'],
-    default: 'medium'
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  },
+  difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+  completed: { type: Boolean, default: false },
   studentAnswer: String,
   isCorrect: Boolean
 }, { _id: false });
 
 const successCheckSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true
-  },
-  verified: {
-    type: Boolean,
-    default: false
-  },
+  description: { type: String, required: true },
+  verified: { type: Boolean, default: false },
   verifiedAt: Date
 }, { _id: false });
+
+// ── Group-specific sub-schemas ──
+
+// understand-gap: what to study within the curriculum
+const conceptGuidanceSchema = new mongoose.Schema({
+  misconception: String,        // "You seem to think X..."
+  correctConcept: String,       // "Actually, it works like Y..."
+  topicsToReview: [String],     // curriculum topic names to revisit
+  keyIdeas: [String],           // 2-3 bullet points of what to focus on
+}, { _id: false });
+
+// rethink-approach: compare approaches
+const approachComparisonSchema = new mongoose.Schema({
+  studentApproach: String,      // "What you tried"
+  correctApproach: String,      // "What was needed"
+  whenToUse: String,            // "Use this approach when..."
+}, { _id: false });
+
+// quick-check: self-review checklist
+const checklistItemSchema = new mongoose.Schema({
+  text: { type: String, required: true },
+  checked: { type: Boolean, default: false },
+}, { _id: false });
+
+// fix-process: rule/procedure reminder
+const ruleReminderSchema = new mongoose.Schema({
+  rule: { type: String, required: true },  // the rule/procedure statement
+  example: String,                          // quick worked example
+}, { _id: false });
+
+// ── Main schema ──
 
 const remediationUnitSchema = new mongoose.Schema({
   sessionId: {
@@ -76,35 +101,30 @@ const remediationUnitSchema = new mongoose.Schema({
     ref: 'FailureSignal',
     required: true
   },
-  priority: {
-    type: Number,
-    required: true,
-    min: 1
-  },
-  title: {
+  priority: { type: Number, required: true, min: 1 },
+  title: { type: String, required: true },
+  diagnosis: { type: String, required: true },
+  rootCause: { type: String, required: true },
+
+  // New: which remediation group this unit belongs to
+  remediationGroup: {
     type: String,
+    enum: REMEDIATION_GROUPS,
     required: true
   },
-  diagnosis: {
-    type: String,
-    required: true
-  },
-  rootCause: {
-    type: String,
-    required: true
-  },
-  remediationType: {
-    type: String,
-    enum: REMEDIATION_TYPES,
-    required: true
-  },
+
+  // Shared fields (used by all groups, but in different amounts)
   learningSteps: [learningStepSchema],
   practiceProblems: [practiceProblemSchema],
   successChecks: [successCheckSchema],
-  totalEstimatedTimeMinutes: {
-    type: Number,
-    required: true
-  },
+
+  // Group-specific fields
+  conceptGuidance: conceptGuidanceSchema,             // understand-gap
+  ruleReminder: ruleReminderSchema,                   // fix-process
+  approachComparison: approachComparisonSchema,        // rethink-approach
+  selfReviewChecklist: [checklistItemSchema],          // quick-check
+
+  totalEstimatedTimeMinutes: { type: Number, required: true },
   prerequisiteChain: {
     currentTopic: String,
     missingPrerequisites: [String]
@@ -132,7 +152,9 @@ remediationUnitSchema.index({ status: 1 });
 
 // Methods
 remediationUnitSchema.methods.updateProgress = function() {
-  const totalSteps = this.learningSteps.length + this.practiceProblems.length + this.successChecks.length;
+  const checklistCount = (this.selfReviewChecklist || []).length;
+  const totalSteps = this.learningSteps.length + this.practiceProblems.length
+    + this.successChecks.length + checklistCount;
 
   if (totalSteps === 0) {
     this.progressPercentage = 0;
@@ -142,23 +164,19 @@ remediationUnitSchema.methods.updateProgress = function() {
   const completedSteps = this.learningSteps.filter(s => s.completed).length;
   const completedProblems = this.practiceProblems.filter(p => p.completed).length;
   const verifiedChecks = this.successChecks.filter(c => c.verified).length;
+  const checkedItems = (this.selfReviewChecklist || []).filter(c => c.checked).length;
 
-  const completedTotal = completedSteps + completedProblems + verifiedChecks;
+  const completedTotal = completedSteps + completedProblems + verifiedChecks + checkedItems;
   this.progressPercentage = Math.round((completedTotal / totalSteps) * 100);
 
-  // Update status
   if (this.progressPercentage === 0) {
     this.status = 'not-started';
   } else if (this.progressPercentage === 100) {
     this.status = 'completed';
-    if (!this.completedAt) {
-      this.completedAt = new Date();
-    }
+    if (!this.completedAt) this.completedAt = new Date();
   } else {
     this.status = 'in-progress';
-    if (!this.startedAt) {
-      this.startedAt = new Date();
-    }
+    if (!this.startedAt) this.startedAt = new Date();
   }
 
   return this.save();
@@ -191,6 +209,13 @@ remediationUnitSchema.methods.verifySuccessCheck = function(checkIndex) {
   return this.updateProgress();
 };
 
+remediationUnitSchema.methods.toggleChecklistItem = function(itemIndex) {
+  if (this.selfReviewChecklist?.[itemIndex]) {
+    this.selfReviewChecklist[itemIndex].checked = !this.selfReviewChecklist[itemIndex].checked;
+  }
+  return this.updateProgress();
+};
+
 // Statics
 remediationUnitSchema.statics.getBySession = function(sessionId) {
   return this.find({ sessionId })
@@ -198,7 +223,8 @@ remediationUnitSchema.statics.getBySession = function(sessionId) {
     .sort({ priority: 1 });
 };
 
-remediationUnitSchema.statics.TYPES = REMEDIATION_TYPES;
+remediationUnitSchema.statics.GROUPS = REMEDIATION_GROUPS;
+remediationUnitSchema.statics.CATEGORY_TO_GROUP = CATEGORY_TO_GROUP;
 
 const RemediationUnit = mongoose.model('RemediationUnit', remediationUnitSchema);
 

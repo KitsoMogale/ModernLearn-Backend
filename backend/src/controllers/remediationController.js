@@ -309,6 +309,48 @@ exports.verifySuccessCheck = async (req, res) => {
 };
 
 /**
+ * PATCH /api/remediation/:unitId/checklist/:itemIndex
+ * Toggle a self-review checklist item
+ */
+exports.toggleChecklistItem = async (req, res) => {
+  try {
+    const { unitId, itemIndex } = req.params;
+
+    const unit = await RemediationUnit.findById(unitId);
+    if (!unit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Remediation unit not found'
+      });
+    }
+
+    const session = await Session.findById(unit.sessionId);
+    if (session.userId.toString() !== req.user.mongoId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized'
+      });
+    }
+
+    await unit.toggleChecklistItem(parseInt(itemIndex));
+
+    res.json({
+      success: true,
+      unit,
+      progressPercentage: unit.progressPercentage,
+      status: unit.status
+    });
+  } catch (error) {
+    console.error('Toggle checklist item error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to toggle checklist item',
+      error: error.message
+    });
+  }
+};
+
+/**
  * POST /api/remediation/:unitId/more-problems
  * Generate more practice problems
  */

@@ -17,4 +17,7 @@ router.post('/:unitId/more-problems', remediationController.generateMoreProblems
 // Success check operations
 router.patch('/:unitId/success-check/:checkIndex', remediationController.verifySuccessCheck);
 
+// Self-review checklist operations
+router.patch('/:unitId/checklist/:itemIndex', remediationController.toggleChecklistItem);
+
 module.exports = router;
