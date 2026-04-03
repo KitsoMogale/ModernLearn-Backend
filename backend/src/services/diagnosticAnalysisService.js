@@ -60,8 +60,8 @@ class DiagnosticAnalysisService {
         }
       }
 
-      // Create FailureSignal documents (pass grading for evidence enrichment)
-      const failureSignals = await this.createFailureSignals(session._id, analysis.failures, analysis.questionAnalysis);
+      // Create FailureSignal documents (pass grading + extracted questions for evidence enrichment)
+      const failureSignals = await this.createFailureSignals(session._id, analysis.failures, analysis.questionAnalysis, extractedQuestions);
 
       // Update session
       await this.updateSessionWithAnalysis(session, analysis);
@@ -296,21 +296,26 @@ STRENGTHS GUIDELINES:
     return JSON.parse(text);
   }
 
-  async createFailureSignals(sessionId, failures, questionAnalysis = []) {
+  async createFailureSignals(sessionId, failures, questionAnalysis = [], extractedQuestions = []) {
     const failureSignals = [];
 
-    // Build lookup from grading data for evidence enrichment
+    // Build lookups for evidence enrichment
     const gradingByQuestion = {};
     for (const qa of questionAnalysis) {
       gradingByQuestion[qa.questionNumber] = qa;
     }
+    const questionTextByNumber = {};
+    for (const eq of extractedQuestions) {
+      questionTextByNumber[eq.questionNumber] = eq.questionText;
+    }
 
     for (const failure of failures) {
-      // Enrich each evidence entry with questionRequires/expectedApproach from grading
+      // Enrich each evidence entry with questionText/questionRequires/expectedApproach
       const enrichedEvidence = (failure.evidence || []).map(ev => {
         const grading = gradingByQuestion[ev.questionNumber];
         return {
           ...ev,
+          questionText: questionTextByNumber[ev.questionNumber] || null,
           questionRequires: ev.questionRequires || grading?.questionRequires || null,
           expectedApproach: ev.expectedApproach || grading?.expectedApproach || null,
         };
