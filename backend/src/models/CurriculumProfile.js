@@ -25,7 +25,7 @@ const topicSchema = new mongoose.Schema({
 const metaSchema = new mongoose.Schema({
   country: { type: String, required: true },
   curriculum: { type: String, required: true },
-  grade: { type: String, required: true },
+  level: { type: String, required: true },
   subject: { type: String, required: true },
   notation: [String],                                       // curriculum-wide notation rules
   markingStandards: [String],                               // how answers are marked
@@ -56,9 +56,9 @@ const curriculumProfileSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// One profile per curriculum + grade + subject
+// One profile per curriculum + level + subject
 curriculumProfileSchema.index(
-  { curriculumCode: 1, 'meta.grade': 1, 'meta.subject': 1 },
+  { curriculumCode: 1, 'meta.level': 1, 'meta.subject': 1 },
   { unique: true }
 );
 
@@ -81,7 +81,7 @@ curriculumProfileSchema.statics.findByLearningScope = function(learningScope) {
   const curriculumCode = mapCurriculumNameToCode(learningScope.curriculum);
   return this.findOne({
     curriculumCode,
-    'meta.grade': learningScope.grade,
+    'meta.level': learningScope.level,
     'meta.subject': learningScope.subject || 'Mathematics',
     isActive: true
   });

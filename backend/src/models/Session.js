@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const learningScopeSchema = new mongoose.Schema({
-  grade: {
+  level: {
     type: String,
     required: true,
     trim: true

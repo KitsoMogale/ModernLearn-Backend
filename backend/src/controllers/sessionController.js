@@ -12,10 +12,10 @@ exports.createSession = async (req, res) => {
     const { learningScope, title } = req.body;
 
     // Validate learningScope
-    if (!learningScope || !learningScope.grade || !learningScope.curriculum || !learningScope.country) {
+    if (!learningScope || !learningScope.level || !learningScope.curriculum || !learningScope.country) {
       return res.status(400).json({
         success: false,
-        message: 'Learning scope (grade, curriculum, country) is required'
+        message: 'Learning scope (level, curriculum, country) is required'
       });
     }
 

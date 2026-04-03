@@ -7,8 +7,8 @@ const curriculumService = require('../services/curriculumService');
 exports.listProfiles = async (req, res) => {
   try {
     const profiles = await CurriculumProfile.find({ isActive: true })
-      .select('curriculumCode meta.country meta.curriculum meta.grade meta.subject version updatedAt')
-      .sort({ curriculumCode: 1, 'meta.grade': 1, 'meta.subject': 1 });
+      .select('curriculumCode meta.country meta.curriculum meta.level meta.subject version updatedAt')
+      .sort({ curriculumCode: 1, 'meta.level': 1, 'meta.subject': 1 });
 
     res.json({
       success: true,
@@ -18,7 +18,7 @@ exports.listProfiles = async (req, res) => {
         curriculumCode: p.curriculumCode,
         country: p.meta.country,
         curriculum: p.meta.curriculum,
-        grade: p.meta.grade,
+        level: p.meta.level,
         subject: p.meta.subject,
         version: p.version,
         updatedAt: p.updatedAt
@@ -35,11 +35,11 @@ exports.listProfiles = async (req, res) => {
  */
 exports.getProfile = async (req, res) => {
   try {
-    const { code, grade, subject } = req.params;
+    const { code, level, subject } = req.params;
 
     const profile = await CurriculumProfile.findOne({
       curriculumCode: code.toUpperCase(),
-      'meta.grade': grade,
+      'meta.level': level,
       'meta.subject': subject,
       isActive: true
     });
@@ -47,7 +47,7 @@ exports.getProfile = async (req, res) => {
     if (!profile) {
       return res.status(404).json({
         success: false,
-        error: `No profile found for ${code} ${grade} ${subject}`
+        error: `No profile found for ${code} ${level} ${subject}`
       });
     }
 
@@ -65,16 +65,16 @@ exports.upsertProfile = async (req, res) => {
   try {
     const data = req.body;
 
-    if (!data.curriculumCode || !data.meta?.grade || !data.meta?.subject) {
+    if (!data.curriculumCode || !data.meta?.level || !data.meta?.subject) {
       return res.status(400).json({
         success: false,
-        error: 'curriculumCode, meta.grade, and meta.subject are required'
+        error: 'curriculumCode, meta.level, and meta.subject are required'
       });
     }
 
     const filter = {
       curriculumCode: data.curriculumCode,
-      'meta.grade': data.meta.grade,
+      'meta.level': data.meta.level,
       'meta.subject': data.meta.subject
     };
 

@@ -1,6 +1,6 @@
 /**
  * Seed curriculum profiles into MongoDB.
- * Reads all JSON files from seeds/curriculum/ and upserts by curriculumCode + meta.grade + meta.subject.
+ * Reads all JSON files from seeds/curriculum/ and upserts by curriculumCode + meta.level + meta.subject.
  *
  * Usage: npm run seed:curriculum
  * Requires MONGODB_URI in .env
@@ -44,7 +44,7 @@ async function seedCurriculum() {
 
       const filter = {
         curriculumCode: data.curriculumCode,
-        'meta.grade': data.meta.grade,
+        'meta.level': data.meta.level,
         'meta.subject': data.meta.subject
       };
 
@@ -55,11 +55,11 @@ async function seedCurriculum() {
         existing.version = (existing.version || 0) + 1;
         await existing.save();
         updated++;
-        console.log(`  Updated: ${data.curriculumCode} ${data.meta.grade} ${data.meta.subject} (v${existing.version})`);
+        console.log(`  Updated: ${data.curriculumCode} ${data.meta.level} ${data.meta.subject} (v${existing.version})`);
       } else {
         await CurriculumProfile.create(data);
         created++;
-        console.log(`  Created: ${data.curriculumCode} ${data.meta.grade} ${data.meta.subject}`);
+        console.log(`  Created: ${data.curriculumCode} ${data.meta.level} ${data.meta.subject}`);
       }
 
       // Summary

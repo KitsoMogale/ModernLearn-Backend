@@ -9,7 +9,7 @@ class CurriculumService {
   // ─── Profile fetching (cached) ───────────────────────────────────
 
   async _getProfile(learningScope) {
-    const cacheKey = `${learningScope.curriculum}:${learningScope.grade}:${learningScope.subject || 'Mathematics'}`;
+    const cacheKey = `${learningScope.curriculum}:${learningScope.level}:${learningScope.subject || 'Mathematics'}`;
     const cached = profileCache.get(cacheKey);
 
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
@@ -231,7 +231,7 @@ class CurriculumService {
     const parts = [];
 
     // ── Layer 1: Meta ──
-    parts.push(`CURRICULUM CONTEXT — ${ctx.meta.curriculum} ${ctx.meta.grade} ${ctx.meta.subject} (${ctx.meta.country}):\n`);
+    parts.push(`CURRICULUM CONTEXT — ${ctx.meta.curriculum} ${ctx.meta.level} ${ctx.meta.subject} (${ctx.meta.country}):\n`);
 
     if (ctx.meta.notation && ctx.meta.notation.length > 0) {
       parts.push('NOTATION STANDARDS:');
@@ -282,7 +282,7 @@ class CurriculumService {
   _formatRemediationPrompt(meta, topics) {
     const parts = [];
 
-    parts.push(`CURRICULUM CONTEXT — ${meta.curriculum} ${meta.grade} ${meta.subject}:\n`);
+    parts.push(`CURRICULUM CONTEXT — ${meta.curriculum} ${meta.level} ${meta.subject}:\n`);
 
     if (meta.notation && meta.notation.length > 0) {
       parts.push('NOTATION:');

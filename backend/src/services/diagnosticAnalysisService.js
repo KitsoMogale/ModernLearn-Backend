@@ -91,7 +91,7 @@ class DiagnosticAnalysisService {
       return text;
     }).join('\n\n');
 
-    const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.grade} ${subject} marker in ${learningScope.country}.
+    const systemPrompt = `You are a ${learningScope.curriculum} ${learningScope.level} ${subject} marker in ${learningScope.country}.
 
 Your ONLY job is to MARK each question. For each question:
 - First, identify what the question is ASKING the student to do (e.g. "Factorise", "Solve for x", "Explain why...", "Calculate the area")
@@ -113,7 +113,7 @@ MARKING PHILOSOPHY — READ CAREFULLY:
 
 FORMATTING: When writing mathematical expressions, formulae, or scientific notation, use LaTeX wrapped in $ delimiters for inline (e.g. $x^2 + 3x - 5$) or $$ for display. This applies to correctAnswer, notes, whatWentWell, whatWentWrong. For non-math subjects, just use plain text.`;
 
-    const userPrompt = `Mark these ${learningScope.grade} ${subject} answers:
+    const userPrompt = `Mark these ${learningScope.level} ${subject} answers:
 
 ${questionsText}
 
@@ -159,7 +159,7 @@ IMPORTANT: Be fair and generous. Students deserve credit for correct work. Alway
 
     const correctQuestions = grading.questionAnalysis.filter(q => q.isCorrect);
 
-    const systemPrompt = `You are an educational diagnostician. You are given the marked results of a ${learningScope.grade} ${subject} test (${learningScope.curriculum}, ${learningScope.country}).
+    const systemPrompt = `You are an educational diagnostician. You are given the marked results of a ${learningScope.level} ${subject} test (${learningScope.curriculum}, ${learningScope.country}).
 
 Your job: look at the INCORRECT answers and figure out WHY the student got them wrong. Group related errors into failures.
 
@@ -233,7 +233,7 @@ REMEMBER: Be proportionate. ${wrongQuestions.length} wrong out of ${grading.ques
       .filter(q => q.whatWentWell)
       .map(q => `Q${q.questionNumber} [${q.topic}]: ${q.whatWentWell}`);
 
-    const systemPrompt = `You write brief, encouraging feedback for students. The student is in ${learningScope.grade} studying ${subject} (${learningScope.curriculum}, ${learningScope.country}).
+    const systemPrompt = `You write brief, encouraging feedback for students. The student is in ${learningScope.level} studying ${subject} (${learningScope.curriculum}, ${learningScope.country}).
 
 TONE: Friendly, supportive, honest. Like a good tutor — celebrate real achievements, be specific about what they did well, and gently point out what to work on. This is a student, not a professional report.`;
 

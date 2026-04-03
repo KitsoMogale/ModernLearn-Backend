@@ -73,7 +73,7 @@ class OCRService {
         max_tokens: 8192,
         messages: [{
           role: 'user',
-          content: `You are analyzing a test/exam for a ${learningScope.grade} student in ${learningScope.country} following ${learningScope.curriculum} curriculum.${notationNote}
+          content: `You are analyzing a test/exam for a ${learningScope.level} student in ${learningScope.country} following ${learningScope.curriculum} curriculum.${notationNote}
 
 RAW EXTRACTED TEXT:
 ${rawText}

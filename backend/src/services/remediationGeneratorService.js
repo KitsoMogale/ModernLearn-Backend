@@ -53,7 +53,7 @@ class RemediationGeneratorService {
     const group = CATEGORY_TO_GROUP[failure.category] || 'fix-process';
     const subject = session.learningScope.subject || 'the subject';
 
-    const systemPrompt = `You are a diagnostic assistant for ${session.learningScope.curriculum} ${session.learningScope.grade} ${subject} in ${session.learningScope.country}. You do NOT teach — you help students understand what went wrong and guide them on what to focus on. Use the methods, notation, and terminology from their curriculum.`;
+    const systemPrompt = `You are a diagnostic assistant for ${session.learningScope.curriculum} ${session.learningScope.level} ${subject} in ${session.learningScope.country}. You do NOT teach — you help students understand what went wrong and guide them on what to focus on. Use the methods, notation, and terminology from their curriculum.`;
 
     const prompt = this._buildGroupPrompt(group, session, failure, priority, totalFailures, curriculumContext);
 
@@ -99,7 +99,7 @@ class RemediationGeneratorService {
     ).join('\n');
 
     return `STUDENT CONTEXT:
-- Grade: ${session.learningScope.grade}
+- Level: ${session.learningScope.level}
 - Curriculum: ${session.learningScope.curriculum}
 - Country: ${session.learningScope.country}
 ${session.learningScope.subject ? `- Subject: ${session.learningScope.subject}` : ''}
