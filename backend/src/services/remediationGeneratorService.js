@@ -58,7 +58,7 @@ class RemediationGeneratorService {
     const prompt = this._buildGroupPrompt(group, session, failure, priority, totalFailures, curriculumContext);
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       max_tokens: 4096,
       messages: [
         { role: 'system', content: systemPrompt },
@@ -372,7 +372,7 @@ Return JSON:
 Make problems progressively harder. Use LaTeX in $ delimiters for math expressions.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       max_tokens: 2048,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' }
@@ -401,7 +401,7 @@ Return JSON:
 }`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       max_tokens: 512,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' }
@@ -424,7 +424,7 @@ Return JSON:
 }`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       max_tokens: 256,
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' }

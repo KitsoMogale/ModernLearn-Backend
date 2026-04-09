@@ -283,7 +283,7 @@ STRENGTHS GUIDELINES:
 
   async _callAI(systemPrompt, userPrompt, maxTokens) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.4-mini',
       max_tokens: maxTokens,
       messages: [
         { role: 'system', content: systemPrompt },

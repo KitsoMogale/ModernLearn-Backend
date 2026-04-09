@@ -31,7 +31,7 @@ class OCRService {
       const mimeType = this.getMimeType(imagePath);
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-5.4-mini',
         max_tokens: 4096,
         messages: [{
           role: 'user',
@@ -69,7 +69,7 @@ class OCRService {
         : '';
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-5.4-mini',
         max_tokens: 8192,
         messages: [{
           role: 'user',
@@ -193,7 +193,75 @@ MATH/SCIENCE FORMATTING:
   }
 
   /**
-   * Complete OCR pipeline: Extract and process
+   * Merge questions extracted from different pages.
+   * Handles cases where questions and answers are on separate pages:
+   * - Page 1 might have question text only (studentAnswer = "")
+   * - Page 2 might have answers only (questionText = "")
+   * - Or both pages have partial info for the same question number
+   *
+   * Matching is done by questionNumber — this is the anchor.
+   */
+  mergeQuestions(allQuestions) {
+    const byNumber = new Map();
+
+    for (const q of allQuestions) {
+      const key = String(q.questionNumber).trim();
+      if (!byNumber.has(key)) {
+        byNumber.set(key, q);
+        continue;
+      }
+
+      // Merge into existing entry
+      const existing = byNumber.get(key);
+
+      // questionText: prefer the longer / non-empty version
+      if (!existing.questionText && q.questionText) {
+        existing.questionText = q.questionText;
+      } else if (q.questionText && q.questionText.length > (existing.questionText || '').length) {
+        existing.questionText = q.questionText;
+      }
+
+      // studentAnswer: prefer the non-empty version
+      if (!existing.studentAnswer && q.studentAnswer) {
+        existing.studentAnswer = q.studentAnswer;
+      } else if (q.studentAnswer && !existing.studentAnswer) {
+        existing.studentAnswer = q.studentAnswer;
+      }
+
+      // structure: merge flags (if either page detected it, keep it)
+      if (q.structure) {
+        existing.structure = existing.structure || {};
+        existing.structure.hasMultipleChoice = existing.structure.hasMultipleChoice || q.structure.hasMultipleChoice;
+        existing.structure.hasDiagram = existing.structure.hasDiagram || q.structure.hasDiagram;
+        existing.structure.hasTable = existing.structure.hasTable || q.structure.hasTable;
+        existing.structure.hasEquations = existing.structure.hasEquations || q.structure.hasEquations;
+      }
+
+      // confidence: take the higher confidence
+      if ((q.confidence || 0) > (existing.confidence || 0)) {
+        existing.confidence = q.confidence;
+      }
+
+      // Track all pages this question appeared on
+      if (q.pageNumber && existing.pageNumber !== q.pageNumber) {
+        existing.sourcePages = existing.sourcePages || [existing.pageNumber];
+        if (!existing.sourcePages.includes(q.pageNumber)) {
+          existing.sourcePages.push(q.pageNumber);
+        }
+      }
+    }
+
+    // Sort by question number (natural sort: 1, 2, 3a, 3b, 10)
+    return Array.from(byNumber.values()).sort((a, b) => {
+      const aNum = parseInt(a.questionNumber) || 0;
+      const bNum = parseInt(b.questionNumber) || 0;
+      if (aNum !== bNum) return aNum - bNum;
+      return String(a.questionNumber).localeCompare(String(b.questionNumber));
+    });
+  }
+
+  /**
+   * Complete OCR pipeline: Extract, merge across pages, and normalize
    */
   async extractQuestions(imagePaths, learningScope) {
     const allQuestions = [];
@@ -215,8 +283,11 @@ MATH/SCIENCE FORMATTING:
       allQuestions.push(...questions);
     }
 
+    // Stage 7: Merge questions across pages (handles separate question/answer sheets)
+    const merged = this.mergeQuestions(allQuestions);
+
     // Stage 8: Normalize
-    return this.normalizeQuestions(allQuestions);
+    return this.normalizeQuestions(merged);
   }
 
   /**
