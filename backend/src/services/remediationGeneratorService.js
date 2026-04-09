@@ -67,6 +67,11 @@ class RemediationGeneratorService {
       response_format: { type: 'json_object' }
     });
 
+    const usage = response.usage;
+    if (usage) {
+      console.log(`  [tokens] remediation-gen(${group}): prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+    }
+
     const data = JSON.parse(response.choices[0].message.content.trim());
 
     const unit = await RemediationUnit.create({
@@ -378,6 +383,11 @@ Make problems progressively harder. Use LaTeX in $ delimiters for math expressio
       response_format: { type: 'json_object' }
     });
 
+    const usage = response.usage;
+    if (usage) {
+      console.log(`  [tokens] more-problems: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+    }
+
     const data = JSON.parse(response.choices[0].message.content.trim());
 
     remediationUnit.practiceProblems.push(...data.problems);
@@ -407,6 +417,11 @@ Return JSON:
       response_format: { type: 'json_object' }
     });
 
+    const usage1 = response.usage;
+    if (usage1) {
+      console.log(`  [tokens] check-answer: prompt=${usage1.prompt_tokens} completion=${usage1.completion_tokens} total=${usage1.total_tokens}`);
+    }
+
     return JSON.parse(response.choices[0].message.content.trim());
   }
 
@@ -429,6 +444,11 @@ Return JSON:
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' }
     });
+
+    const usage2 = response.usage;
+    if (usage2) {
+      console.log(`  [tokens] get-hint: prompt=${usage2.prompt_tokens} completion=${usage2.completion_tokens} total=${usage2.total_tokens}`);
+    }
 
     return JSON.parse(response.choices[0].message.content.trim());
   }

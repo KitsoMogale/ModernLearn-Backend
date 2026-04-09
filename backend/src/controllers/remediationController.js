@@ -52,7 +52,10 @@ exports.generateRemediation = async (req, res) => {
     }
 
     // Generate remediation plan
-    const remediationUnits = await remediationGeneratorService.generateRemediationPlan(session);
+    await remediationGeneratorService.generateRemediationPlan(session);
+
+    // Re-fetch with populated failureSignalId so frontend has evidence data
+    const remediationUnits = await RemediationUnit.getBySession(session._id);
 
     res.json({
       success: true,
@@ -142,6 +145,7 @@ exports.completeStep = async (req, res) => {
     }
 
     await unit.completeStep(parseInt(stepNumber));
+    await unit.populate('failureSignalId');
 
     res.json({
       success: true,
@@ -205,9 +209,11 @@ exports.submitProblemAnswer = async (req, res) => {
 
     // Update problem
     await unit.completeProblem(parseInt(problemNumber), answer, result.isCorrect);
+    await unit.populate('failureSignalId');
 
     res.json({
       success: true,
+      unit,
       isCorrect: result.isCorrect,
       feedback: result.feedback,
       partialCredit: result.partialCredit,
@@ -291,6 +297,7 @@ exports.verifySuccessCheck = async (req, res) => {
     }
 
     await unit.verifySuccessCheck(parseInt(checkIndex));
+    await unit.populate('failureSignalId');
 
     res.json({
       success: true,
@@ -333,6 +340,7 @@ exports.toggleChecklistItem = async (req, res) => {
     }
 
     await unit.toggleChecklistItem(parseInt(itemIndex));
+    await unit.populate('failureSignalId');
 
     res.json({
       success: true,

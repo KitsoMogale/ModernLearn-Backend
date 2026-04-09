@@ -292,6 +292,11 @@ STRENGTHS GUIDELINES:
       response_format: { type: 'json_object' }
     });
 
+    const usage = response.usage;
+    if (usage) {
+      console.log(`  [tokens] prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+    }
+
     const text = response.choices[0].message.content.trim();
     return JSON.parse(text);
   }

@@ -50,6 +50,11 @@ class OCRService {
         }]
       });
 
+      const usage = response.usage;
+      if (usage) {
+        console.log(`  [tokens] OCR-extract: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+      }
+
       return response.choices[0].message.content;
     } catch (error) {
       console.error('OCR extraction error:', error);
@@ -143,6 +148,11 @@ MATH/SCIENCE FORMATTING:
         }],
         response_format: { type: 'json_object' }
       });
+
+      const usage = response.usage;
+      if (usage) {
+        console.log(`  [tokens] OCR-process: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+      }
 
       const jsonText = response.choices[0].message.content.trim();
       const parsed = JSON.parse(jsonText);
