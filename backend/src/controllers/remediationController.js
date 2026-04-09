@@ -208,7 +208,7 @@ exports.submitProblemAnswer = async (req, res) => {
     const result = await remediationGeneratorService.checkAnswer(problem, answer);
 
     // Update problem
-    await unit.completeProblem(parseInt(problemNumber), answer, result.isCorrect);
+    await unit.completeProblem(parseInt(problemNumber), answer, result.isCorrect, result.feedback);
     await unit.populate('failureSignalId');
 
     res.json({

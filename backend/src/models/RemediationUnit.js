@@ -47,9 +47,11 @@ const practiceProblemSchema = new mongoose.Schema({
   correctAnswer: String,
   hint: String,
   difficulty: { type: String, enum: ['easy', 'medium', 'hard'], default: 'medium' },
+  mode: { type: String, enum: ['answer', 'suggestion'], default: 'answer' },
   completed: { type: Boolean, default: false },
   studentAnswer: String,
-  isCorrect: Boolean
+  isCorrect: Boolean,
+  feedback: String
 }, { _id: false });
 
 const successCheckSchema = new mongoose.Schema({
@@ -191,12 +193,13 @@ remediationUnitSchema.methods.completeStep = function(stepNumber) {
   return this.updateProgress();
 };
 
-remediationUnitSchema.methods.completeProblem = function(problemNumber, studentAnswer, isCorrect) {
+remediationUnitSchema.methods.completeProblem = function(problemNumber, studentAnswer, isCorrect, feedback) {
   const problem = this.practiceProblems.find(p => p.problemNumber === problemNumber);
   if (problem) {
     problem.completed = true;
     problem.studentAnswer = studentAnswer;
     problem.isCorrect = isCorrect;
+    if (feedback) problem.feedback = feedback;
   }
   return this.updateProgress();
 };

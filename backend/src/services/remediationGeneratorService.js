@@ -186,7 +186,8 @@ Return JSON:
       "question": "ONE self-check question to verify understanding after studying",
       "correctAnswer": "The answer",
       "hint": "A nudge toward the right concept",
-      "difficulty": "medium"
+      "difficulty": "medium",
+      "mode": "answer"
     }
   ],
   "successChecks": [
@@ -199,7 +200,9 @@ Return JSON:
 GUIDELINES:
 - 2-3 learning steps, ONLY 1 practice problem (it's a check, not a drill), 2 success checks
 - topicsToReview should be specific curriculum topic names, NOT textbook references
-- Total time: 10-20 minutes (studying happens on their own — this is just the diagnostic guidance)`;
+- Total time: 10-20 minutes (studying happens on their own — this is just the diagnostic guidance)
+- SUBJECT FLEXIBILITY: Adapt question format to ${session.learningScope.subject || 'the subject'}. For maths/science: computation or derivation. For languages: sentence construction, comprehension, or analysis. For humanities: short reasoning or identification. The question should be answerable in a short text input.
+- mode: set to "answer" if the student should type an answer and have it checked, or "suggestion" if the problem is more of a prompt for offline practice (e.g. "Write a paragraph about…" or "Solve these 5 equations in your notebook"). Use "suggestion" for open-ended or lengthy tasks that can't be checked in a text box.`;
   }
 
   // ── GROUP 2: fix-process ─────────────────────────────────────────
@@ -237,7 +240,8 @@ Return JSON:
       "question": "Targeted problem exercising the exact procedure",
       "correctAnswer": "Answer",
       "hint": "Hint",
-      "difficulty": "easy"
+      "difficulty": "easy",
+      "mode": "answer"
     }
   ],
   "successChecks": [
@@ -247,9 +251,12 @@ Return JSON:
 }
 
 GUIDELINES:
-- 1-2 learning steps (brief), 3-5 practice problems (easy → medium → hard), 1-2 success checks
+- 1-2 learning steps (brief), 2-3 practice problems (easy → medium), 1-2 success checks
+- Maximum 3 practice problems. Quality over quantity.
 - The practice problems ARE the remediation — this group is drill-focused
-- Total time: 10-20 minutes`;
+- Total time: 10-20 minutes
+- SUBJECT FLEXIBILITY: Adapt to ${session.learningScope.subject || 'the subject'}. For maths/science: short computation. For languages: grammar correction, sentence completion. For humanities: factual recall or short reasoning. Keep answers short enough to type in a text box.
+- mode: "answer" for problems the student types an answer to, "suggestion" for tasks better done offline (e.g. "Practice these 3 types of equations in your notebook"). Use "suggestion" sparingly — most fix-process problems should be "answer".`;
   }
 
   // ── GROUP 3: rethink-approach ────────────────────────────────────
@@ -288,7 +295,8 @@ Return JSON:
       "question": "Given this problem, which approach would you use and why? [describe a problem scenario]",
       "correctAnswer": "The correct approach choice with brief reasoning",
       "hint": "Look at [specific clue in the problem]",
-      "difficulty": "medium"
+      "difficulty": "medium",
+      "mode": "answer"
     }
   ],
   "successChecks": [
@@ -299,8 +307,11 @@ Return JSON:
 
 GUIDELINES:
 - 1-2 learning steps, 2-3 practice problems (focus on CHOOSING the approach, not just solving), 1-2 success checks
+- Maximum 3 practice problems.
 - Practice problems should test recognition: "which method?" not just "solve this"
-- Total time: 8-15 minutes`;
+- Total time: 8-15 minutes
+- SUBJECT FLEXIBILITY: Adapt to ${session.learningScope.subject || 'the subject'}. For maths: "which formula/method?". For languages: "which tense/structure?". For sciences: "which principle applies?". For humanities: "which analytical framework?".
+- mode: "answer" for short-answer recognition questions, "suggestion" for prompts like "Next time you see a problem like X, try approach Y — practice recognising the pattern".`;
   }
 
   // ── GROUP 4: quick-check ─────────────────────────────────────────
@@ -333,7 +344,8 @@ Return JSON:
       "question": "One quick problem targeting the exact type of slip",
       "correctAnswer": "Answer",
       "hint": "Remember to check [the thing they slipped on]",
-      "difficulty": "easy"
+      "difficulty": "easy",
+      "mode": "answer"
     }
   ],
   "successChecks": [
@@ -348,7 +360,8 @@ GUIDELINES:
 - 0-1 practice problems (just a sanity check, not a drill)
 - 1 success check
 - Total time: 3-5 minutes — keep it light
-- Do NOT make this feel like punishment for a mistake`;
+- Do NOT make this feel like punishment for a mistake
+- mode: "answer" or "suggestion" — for a quick check, either works.`;
   }
 
   // ─── Utility methods (unchanged) ─────────────────────────────────
