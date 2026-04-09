@@ -32,7 +32,7 @@ class OCRService {
 
       const response = await openai.chat.completions.create({
         model: 'gpt-5.4-mini',
-        max_tokens: 4096,
+        max_completion_tokens: 4096,
         messages: [{
           role: 'user',
           content: [
@@ -70,7 +70,7 @@ class OCRService {
 
       const response = await openai.chat.completions.create({
         model: 'gpt-5.4-mini',
-        max_tokens: 8192,
+        max_completion_tokens: 8192,
         messages: [{
           role: 'user',
           content: `You are analyzing a test/exam for a ${learningScope.level} student in ${learningScope.country} following ${learningScope.curriculum} curriculum.${notationNote}
