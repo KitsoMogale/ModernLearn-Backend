@@ -275,20 +275,55 @@ exports.getSession = async (req, res) => {
 };
 
 /**
- * GET /api/users/:userId/sessions
- * Get all sessions for user
+ * GET /api/sessions/user/all
+ * Get all sessions for user (with counts for list rendering).
+ * Optional ?status=in-progress|completed filter.
  */
 exports.getUserSessions = async (req, res) => {
   try {
     const userId = req.user.mongoId;
+    const { status } = req.query;
 
-    const sessions = await Session.find({ userId })
-      .sort({ createdAt: -1 })
-      .select('title learningScope status createdAt updatedAt');
+    const match = { userId };
+    if (status === 'completed') {
+      match.status = 'completed';
+    } else if (status === 'in-progress') {
+      match.status = { $ne: 'completed' };
+    }
+
+    const sessions = await Session.aggregate([
+      { $match: match },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          title: 1,
+          learningScope: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          pageCount: { $size: { $ifNull: ['$uploadedImages', []] } },
+          failureCount: { $size: { $ifNull: ['$detectedFailures', []] } },
+          remediationCount: { $size: { $ifNull: ['$remediationPlan', []] } },
+        },
+      },
+    ]);
+
+    // Aggregate returns _id; keep id convention consistent with other endpoints.
+    const normalized = sessions.map((s) => ({
+      id: s._id,
+      title: s.title,
+      learningScope: s.learningScope,
+      status: s.status,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+      pageCount: s.pageCount,
+      failureCount: s.failureCount,
+      remediationCount: s.remediationCount,
+    }));
 
     res.json({
       success: true,
-      sessions
+      sessions: normalized,
     });
   } catch (error) {
     console.error('Get user sessions error:', error);
