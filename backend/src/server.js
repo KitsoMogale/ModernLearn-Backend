@@ -20,8 +20,8 @@ app.use(morgan('dev'));
 // Connect to MongoDB
 connectDB();
 
-// Initialize Firebase Admin
-//initializeFirebase();
+// Initialize Firebase Admin (required for verifying ID tokens in auth middleware)
+initializeFirebase();
 
 // Health check endpoint
 app.get('/health', (req, res) => {

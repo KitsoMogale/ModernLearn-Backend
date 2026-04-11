@@ -45,8 +45,8 @@ const upload = multer({
 // Middleware for single file upload
 const uploadSingle = upload.single('image');
 
-// Middleware for multiple file upload (up to 10 images)
-const uploadMultiple = upload.array('images', 10);
+// Middleware for multiple file upload (up to 12 images)
+const uploadMultiple = upload.array('images', 12);
 
 // Error handling middleware
 const handleUploadError = (err, req, res, next) => {
@@ -60,7 +60,7 @@ const handleUploadError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_COUNT') {
       return res.status(400).json({
         success: false,
-        message: 'Too many files. Maximum is 10 images'
+        message: 'Too many files. Maximum is 12 images'
       });
     }
     return res.status(400).json({
