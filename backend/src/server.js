@@ -34,11 +34,13 @@ const sessionRoutes = require('./routes/sessions');
 const remediationRoutes = require('./routes/remediation');
 const curriculumRoutes = require('./routes/curriculum');
 const tutorRoutes = require('./routes/tutor');
+const userRoutes = require('./routes/users');
 
 app.use(`/api/sessions`, sessionRoutes);
 app.use(`/api/remediation`, remediationRoutes);
 app.use(`/api/curriculum`, curriculumRoutes);
 app.use(`/api/tutor`, tutorRoutes);
+app.use(`/api/users`, userRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
