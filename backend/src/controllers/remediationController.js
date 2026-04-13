@@ -103,6 +103,7 @@ exports.getRemediation = async (req, res) => {
     res.json({
       success: true,
       remediationUnits,
+      strengths: session.strengths || [],
       totalUnits: remediationUnits.length,
       totalEstimatedTime: remediationUnits.reduce((sum, u) => sum + u.totalEstimatedTimeMinutes, 0),
       overallProgress: remediationUnits.length > 0

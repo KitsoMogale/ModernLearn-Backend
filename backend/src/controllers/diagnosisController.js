@@ -41,6 +41,7 @@ exports.analyzeSession = async (req, res) => {
     // Update session — failures are already confirmed
     session.detectedFailures = analysis.failureSignals.map(f => f._id);
     session.analysisSummary = analysis.summary;
+    session.strengths = analysis.strengths || [];
     await session.updateStatus('analyzed');
 
     return res.json({

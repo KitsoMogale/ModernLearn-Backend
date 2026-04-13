@@ -160,7 +160,14 @@ const sessionSchema = new mongoose.Schema({
   },
   analysisSummary: {
     type: String
-  }
+  },
+  strengths: [
+    {
+      skill:  { type: String },
+      detail: { type: String },
+      _id: false,
+    }
+  ]
 }, {
   timestamps: true
 });
