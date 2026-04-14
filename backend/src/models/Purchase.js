@@ -14,7 +14,7 @@ const purchaseSchema = new mongoose.Schema({
   productId: {
     type: String,
     required: true,
-    enum: ['tokens_80k', 'tokens_250k'],
+    enum: ['ml_token1', 'ml_2'],
   },
   platform: {
     type: String,

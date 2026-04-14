@@ -7,8 +7,8 @@ const Purchase = require('../models/Purchase');
 router.use(authenticate);
 
 const PRODUCTS = {
-  tokens_80k:   { tokens: 80000  },
-  tokens_250k:  { tokens: 250000 },
+  ml_token1: { tokens: 80000  },
+  ml_2: { tokens: 250000 },
 };
 
 // POST /api/iap/validate
