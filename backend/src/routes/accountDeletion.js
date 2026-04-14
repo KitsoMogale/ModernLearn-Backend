@@ -119,18 +119,17 @@ router.get('/', (req, res) => {
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-
-    const firebaseApp = initializeApp({
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script>
+    firebase.initializeApp({
       apiKey: '${apiKey}',
       authDomain: '${projectId}.firebaseapp.com',
       projectId: '${projectId}',
     });
-    const auth = getAuth(firebaseApp);
 
-    let idToken = null;
+    var auth = firebase.auth();
+    var idToken = null;
 
     function setStep(name) {
       document.getElementById('step-signin').classList.remove('active');
@@ -143,7 +142,7 @@ router.get('/', (req, res) => {
     }
 
     function showError(elId, msg) {
-      const el = document.getElementById(elId);
+      var el = document.getElementById(elId);
       el.textContent = msg;
       el.style.display = 'block';
     }
@@ -153,7 +152,7 @@ router.get('/', (req, res) => {
     }
 
     function friendlyError(err) {
-      const code = err && err.code ? err.code : '';
+      var code = (err && err.code) ? err.code : '';
       if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found')
         return 'Incorrect email or password.';
       if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
@@ -162,48 +161,59 @@ router.get('/', (req, res) => {
       return (err && err.message) ? err.message : 'Something went wrong. Please try again.';
     }
 
-    document.getElementById('signin-btn').addEventListener('click', async function () {
+    document.getElementById('signin-btn').addEventListener('click', function () {
       hideError('signin-error');
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
       if (!email || !password) { showError('signin-error', 'Please enter your email and password.'); return; }
 
-      this.disabled = true;
-      this.textContent = 'Signing in\u2026';
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        idToken = await cred.user.getIdToken();
-        document.getElementById('confirm-email').textContent = cred.user.email;
-        setStep('confirm');
-      } catch (err) {
-        showError('signin-error', friendlyError(err));
-      } finally {
-        this.disabled = false;
-        this.textContent = 'Sign in to continue';
-      }
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(function (cred) {
+          return cred.user.getIdToken().then(function (token) {
+            idToken = token;
+            document.getElementById('confirm-email').textContent = cred.user.email;
+            setStep('confirm');
+          });
+        })
+        .catch(function (err) {
+          showError('signin-error', friendlyError(err));
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = 'Sign in to continue';
+        });
     });
 
-    document.getElementById('delete-btn').addEventListener('click', async function () {
+    document.getElementById('delete-btn').addEventListener('click', function () {
       hideError('delete-error');
-      this.disabled = true;
-      this.textContent = 'Deleting\u2026';
-      try {
-        const res = await fetch('/account/delete', {
-          method: 'DELETE',
-          headers: { 'Authorization': 'Bearer ' + idToken },
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+
+      fetch('/account/delete', {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + idToken },
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (res.ok && data.success) {
+              setStep('success');
+            } else {
+              showError('delete-error', (data && data.message) ? data.message : 'Deletion failed. Please try again.');
+              btn.disabled = false;
+              btn.textContent = 'Yes, permanently delete my account';
+            }
+          });
+        })
+        .catch(function () {
+          showError('delete-error', 'Network error. Please check your connection and try again.');
+          btn.disabled = false;
+          btn.textContent = 'Yes, permanently delete my account';
         });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          setStep('success');
-        } else {
-          showError('delete-error', (data && data.message) ? data.message : 'Deletion failed. Please try again.');
-        }
-      } catch (e) {
-        showError('delete-error', 'Network error. Please check your connection and try again.');
-      } finally {
-        this.disabled = false;
-        this.textContent = 'Yes, permanently delete my account';
-      }
     });
   </script>
 </body>
