@@ -1,8 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const admin = require('firebase-admin');
+const { verifyFirebaseToken } = require('../config/firebase');
+const { User, Session, FailureSignal, RemediationUnit, TutorConversation } = require('../models');
 
-const PAGE_HTML = `<!DOCTYPE html>
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+const FIREBASE_API_KEY = process.env.FIREBASE_WEB_API_KEY; // add to your .env
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID;
+
+// ── GET /account/delete — serve the page ─────────────────────────────────────
+
+router.get('/', (req, res) => {
+  res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -27,66 +37,50 @@ const PAGE_HTML = `<!DOCTYPE html>
       max-width: 460px;
       width: 100%;
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 28px;
-    }
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
     .logo-icon {
       width: 40px; height: 40px; border-radius: 10px;
       background: linear-gradient(135deg, #6366f1, #4f46e5);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
     }
     .logo-text { font-size: 17px; font-weight: 800; color: #1e293b; }
     h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
-    .description { color: #64748b; font-size: 14px; line-height: 1.65; margin-bottom: 28px; }
+    .description { color: #64748b; font-size: 14px; line-height: 1.65; margin-bottom: 24px; }
     .warning {
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 13px;
-      color: #9a3412;
-      line-height: 1.6;
-      margin-bottom: 24px;
+      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+      padding: 14px 16px; font-size: 13px; color: #9a3412; line-height: 1.6; margin-bottom: 24px;
     }
+    .success-box {
+      background: #dcfce7; border: 1px solid #86efac; border-radius: 10px;
+      padding: 20px; text-align: center; display: none;
+    }
+    .success-box .tick { font-size: 36px; margin-bottom: 10px; }
+    .success-box h2 { font-size: 18px; font-weight: 700; color: #166534; margin-bottom: 6px; }
+    .success-box p { font-size: 14px; color: #166534; line-height: 1.5; }
     label { display: block; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px; }
     input {
-      width: 100%;
-      padding: 12px 14px;
-      font-size: 16px;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      outline: none;
-      transition: border-color 0.15s;
+      width: 100%; padding: 12px 14px; font-size: 16px;
+      border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 16px;
+      outline: none; transition: border-color 0.15s;
     }
     input:focus { border-color: #6366f1; }
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #ef4444;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s;
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 10px;
+      font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.15s;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .msg {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-size: 14px;
-      line-height: 1.5;
-      display: none;
+    .btn-delete { background: #ef4444; color: #fff; margin-top: 4px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-msg {
+      margin-top: 14px; padding: 12px 16px; border-radius: 10px;
+      font-size: 13px; color: #991b1b; background: #fee2e2; display: none;
     }
-    .msg.success { background: #dcfce7; color: #166534; display: block; }
-    .msg.error   { background: #fee2e2; color: #991b1b; display: block; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .step-label {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #94a3b8; margin-bottom: 20px;
+    }
+    .confirm-email { font-weight: 700; color: #1e293b; word-break: break-all; }
   </style>
 </head>
 <body>
@@ -98,88 +92,190 @@ const PAGE_HTML = `<!DOCTYPE html>
 
     <h1>Delete your account</h1>
     <p class="description">
-      Enter the email address associated with your ModernLearn account. We will permanently delete
-      all your data — sessions, analysis results, remediation plans, and personal information —
-      within 30 days of your request.
+      Sign in to verify your identity, then permanently delete your account and all associated data.
     </p>
 
     <div class="warning">
-      ⚠️ This action cannot be undone. Once deleted, your data cannot be recovered.
+      ⚠️ This action is permanent and cannot be undone. All your sessions, analysis results,
+      remediation plans, and personal data will be deleted immediately.
     </div>
 
-    <label for="email">Email address</label>
-    <input type="email" id="email" placeholder="you@example.com" />
+    <!-- Step 1: Sign in -->
+    <div id="step-signin" class="step active">
+      <div class="step-label">Step 1 of 2 — Verify your identity</div>
+      <label for="email">Email address</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Your password" />
+      <button class="btn btn-delete" id="signin-btn" onclick="handleSignIn()">Sign in to continue</button>
+      <div id="signin-error" class="error-msg"></div>
+    </div>
 
-    <button id="btn" onclick="submitRequest()">Request account deletion</button>
-    <div id="msg" class="msg"></div>
+    <!-- Step 2: Confirm deletion -->
+    <div id="step-confirm" class="step">
+      <div class="step-label">Step 2 of 2 — Confirm deletion</div>
+      <p class="description">
+        Signed in as <span id="confirm-email" class="confirm-email"></span>.<br><br>
+        Click the button below to permanently delete your account and all your data.
+        This cannot be undone.
+      </p>
+      <button class="btn btn-delete" id="delete-btn" onclick="handleDelete()">Yes, permanently delete my account</button>
+      <div id="delete-error" class="error-msg"></div>
+    </div>
+
+    <!-- Success -->
+    <div id="step-success" class="success-box">
+      <div class="tick">✅</div>
+      <h2>Account deleted</h2>
+      <p>Your account and all associated data have been permanently deleted. You can close this page.</p>
+    </div>
   </div>
 
-  <script>
-    async function submitRequest() {
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+    const app = initializeApp({
+      apiKey: '${FIREBASE_API_KEY}',
+      authDomain: '${FIREBASE_PROJECT_ID}.firebaseapp.com',
+      projectId: '${FIREBASE_PROJECT_ID}',
+    });
+    const auth = getAuth(app);
+
+    let idToken = null;
+
+    window.handleSignIn = async () => {
       const email = document.getElementById('email').value.trim();
-      const btn = document.getElementById('btn');
-      if (!email) { showMsg('Please enter your email address.', false); return; }
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('signin-btn');
+      const errEl = document.getElementById('signin-error');
+      errEl.style.display = 'none';
+
+      if (!email || !password) { showError(errEl, 'Please enter your email and password.'); return; }
+
       btn.disabled = true;
-      btn.textContent = 'Submitting…';
+      btn.textContent = 'Signing in…';
       try {
-        const res = await fetch('/account/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          showMsg('Your request has been received. Your account and all associated data will be permanently deleted within 30 days.', true);
-          document.getElementById('email').value = '';
-        } else {
-          showMsg(data.message || 'Something went wrong. Please try again.', false);
-        }
-      } catch (e) {
-        showMsg('Network error. Please check your connection and try again.', false);
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        idToken = await cred.user.getIdToken();
+        document.getElementById('confirm-email').textContent = cred.user.email;
+        setStep('confirm');
+      } catch (err) {
+        showError(errEl, friendlyError(err));
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Request account deletion';
+        btn.textContent = 'Sign in to continue';
+      }
+    };
+
+    window.handleDelete = async () => {
+      const btn = document.getElementById('delete-btn');
+      const errEl = document.getElementById('delete-error');
+      errEl.style.display = 'none';
+
+      btn.disabled = true;
+      btn.textContent = 'Deleting…';
+      try {
+        const res = await fetch('/account/delete', {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + idToken },
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          setStep('success');
+        } else {
+          showError(errEl, data.message || 'Deletion failed. Please try again.');
+        }
+      } catch (e) {
+        showError(errEl, 'Network error. Please check your connection and try again.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Yes, permanently delete my account';
+      }
+    };
+
+    function setStep(name) {
+      ['signin', 'confirm'].forEach(s => {
+        document.getElementById('step-' + s).classList.remove('active');
+      });
+      if (name === 'success') {
+        document.getElementById('step-success').style.display = 'block';
+      } else {
+        document.getElementById('step-' + name).classList.add('active');
       }
     }
-    function showMsg(text, success) {
-      const el = document.getElementById('msg');
-      el.textContent = text;
-      el.className = 'msg ' + (success ? 'success' : 'error');
+
+    function showError(el, msg) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function friendlyError(err) {
+      const code = err?.code || '';
+      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found')
+        return 'Incorrect email or password.';
+      if (code === 'auth/too-many-requests')
+        return 'Too many attempts. Please try again later.';
+      if (code === 'auth/network-request-failed')
+        return 'Network error. Check your connection.';
+      return err?.message || 'Sign-in failed. Please try again.';
     }
   </script>
 </body>
-</html>`;
-
-// GET /account/delete — serve the deletion request page
-router.get('/', (req, res) => {
-  res.send(PAGE_HTML);
+</html>`);
 });
 
-// POST /account/delete — mark user for deletion
-router.post('/', express.json(), async (req, res) => {
-  const { email } = req.body;
+// ── DELETE /account/delete — authenticated, deletes all user data ─────────────
 
-  if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return res.status(400).json({ success: false, message: 'A valid email address is required.' });
-  }
-
+router.delete('/', async (req, res) => {
   try {
-    const trimmed = email.trim().toLowerCase();
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Authentication required.' });
+    }
 
-    // Mark the user for deletion — a background job or manual review handles the actual purge.
-    // If the email doesn't exist we still return success to avoid user enumeration.
-    await User.findOneAndUpdate(
-      { email: trimmed },
-      { $set: { deletionRequestedAt: new Date() } },
-      { new: false }
-    );
+    const token = authHeader.slice('Bearer '.length).trim();
+    const decoded = await verifyFirebaseToken(token);
+    const firebaseUid = decoded.uid;
 
-    console.log(`Account deletion requested for: ${trimmed}`);
+    const user = await User.findOne({ firebaseUid });
+    if (!user) {
+      // Already deleted or never existed — treat as success
+      return res.json({ success: true });
+    }
 
+    const userId = user._id;
+
+    // 1. Get all session IDs belonging to this user
+    const sessions = await Session.find({ userId }).select('_id');
+    const sessionIds = sessions.map(s => s._id);
+
+    // 2. Delete all related data in parallel
+    await Promise.all([
+      FailureSignal.deleteMany({ sessionId: { $in: sessionIds } }),
+      RemediationUnit.deleteMany({ sessionId: { $in: sessionIds } }),
+      TutorConversation.deleteMany({ sessionId: { $in: sessionIds } }),
+    ]);
+
+    // 3. Delete sessions
+    await Session.deleteMany({ userId });
+
+    // 4. Delete the user document
+    await User.deleteOne({ _id: userId });
+
+    // 5. Delete the Firebase Auth account so the user can't sign in again
+    try {
+      await admin.auth().deleteUser(firebaseUid);
+    } catch (fbErr) {
+      // Non-fatal — data is already gone
+      console.error('Firebase user deletion error:', fbErr.message);
+    }
+
+    console.log(`Account permanently deleted: ${user.email} (${firebaseUid})`);
     res.json({ success: true });
   } catch (error) {
-    console.error('Account deletion request error:', error);
-    res.status(500).json({ success: false, message: 'Failed to process request. Please try again.' });
+    console.error('Account deletion error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete account. Please try again.' });
   }
 });
 
