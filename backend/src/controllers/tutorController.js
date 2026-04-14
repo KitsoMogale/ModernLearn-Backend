@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const TutorConversation = require('../models/TutorConversation');
 const Session = require('../models/Session');
+const User = require('../models/User');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -149,6 +150,16 @@ exports.chat = async (req, res) => {
       });
     }
 
+    // Token balance check
+    const userDoc = await User.findById(userId).select('tokenBalance');
+    if (!userDoc || userDoc.tokenBalance <= 0) {
+      return res.status(402).json({
+        success: false,
+        code: 'INSUFFICIENT_TOKENS',
+        message: 'You have no tokens remaining. Purchase more to continue using the AI tutor.',
+      });
+    }
+
     // Build messages array for OpenAI
     const systemPrompt = buildSystemPrompt(session, screenContext);
 
@@ -198,10 +209,27 @@ exports.chat = async (req, res) => {
       { role: 'user', content: userMessage },
       { role: 'assistant', content: assistantContent },
     );
-    await conversation.save();
 
-    // Send done event
-    res.write(`data: ${JSON.stringify({ type: 'done', messageId: conversation.messages.length })}\n\n`);
+    // Estimate tokens used (rough: 1 token ≈ 4 chars) and deduct from balance
+    const estimatedTokens = Math.ceil((userMessage.length + assistantContent.length) / 4);
+    const [updatedUser] = await Promise.all([
+      User.findByIdAndUpdate(
+        userId,
+        {
+          $inc: {
+            tokenBalance: -estimatedTokens,
+            totalTokensUsed: estimatedTokens,
+          },
+        },
+        { new: true }
+      ).select('tokenBalance'),
+      conversation.save(),
+    ]);
+
+    const newBalance = Math.max(0, updatedUser?.tokenBalance ?? 0);
+
+    // Send done event with updated balance so client can update UI
+    res.write(`data: ${JSON.stringify({ type: 'done', messageId: conversation.messages.length, tokenBalance: newBalance })}\n\n`);
     res.end();
 
   } catch (error) {

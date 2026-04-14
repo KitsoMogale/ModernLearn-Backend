@@ -48,7 +48,20 @@ const userSchema = new mongoose.Schema({
   },
   deletionRequestedAt: {
     type: Date
-  }
+  },
+  tokenBalance: {
+    type: Number,
+    default: 20000,  // free starter tokens for new users
+    min: 0,
+  },
+  totalTokensUsed: {
+    type: Number,
+    default: 0,
+  },
+  totalTokensPurchased: {
+    type: Number,
+    default: 0,
+  },
 }, {
   timestamps: true
 });
