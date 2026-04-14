@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema({
   },
   lastLoginAt: {
     type: Date
+  },
+  deletionRequestedAt: {
+    type: Date
   }
 }, {
   timestamps: true
