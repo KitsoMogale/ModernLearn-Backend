@@ -206,7 +206,7 @@ exports.submitProblemAnswer = async (req, res) => {
     }
 
     // Check answer with AI
-    const result = await remediationGeneratorService.checkAnswer(problem, answer);
+    const result = await remediationGeneratorService.checkAnswer(problem, answer, req.user.mongoId);
 
     // Update problem
     await unit.completeProblem(parseInt(problemNumber), answer, result.isCorrect, result.feedback);
@@ -256,7 +256,7 @@ exports.getProblemHint = async (req, res) => {
       });
     }
 
-    const hintData = await remediationGeneratorService.getHint(problem, attemptNumber || 1);
+    const hintData = await remediationGeneratorService.getHint(problem, attemptNumber || 1, req.user.mongoId);
 
     res.json({
       success: true,
@@ -376,7 +376,7 @@ exports.generateMoreProblems = async (req, res) => {
       });
     }
 
-    const newProblems = await remediationGeneratorService.generateMoreProblems(unit, count || 5);
+    const newProblems = await remediationGeneratorService.generateMoreProblems(unit, count || 5, req.user.mongoId);
 
     res.json({
       success: true,

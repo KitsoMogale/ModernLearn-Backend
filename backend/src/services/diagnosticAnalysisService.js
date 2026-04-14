@@ -1,6 +1,7 @@
 const OpenAI = require('openai');
 const FailureSignal = require('../models/FailureSignal');
 const curriculumService = require('./curriculumService');
+const deductTokens = require('../utils/deductTokens');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -16,6 +17,7 @@ const openai = new OpenAI({
 class DiagnosticAnalysisService {
 
   async analyzeSession(session) {
+    this._userId = session.userId;
     try {
       const { extractedQuestions, learningScope } = session;
 
@@ -295,6 +297,7 @@ STRENGTHS GUIDELINES:
     const usage = response.usage;
     if (usage) {
       console.log(`  [tokens] prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+      if (this._userId) deductTokens(this._userId, usage.total_tokens);
     }
 
     const text = response.choices[0].message.content.trim();

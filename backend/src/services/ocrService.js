@@ -2,6 +2,7 @@ const OpenAI = require('openai');
 const fs = require('fs').promises;
 const path = require('path');
 const curriculumService = require('./curriculumService');
+const deductTokens = require('../utils/deductTokens');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -53,6 +54,7 @@ class OCRService {
       const usage = response.usage;
       if (usage) {
         console.log(`  [tokens] OCR-extract: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+        if (this._userId) deductTokens(this._userId, usage.total_tokens);
       }
 
       return response.choices[0].message.content;
@@ -152,6 +154,7 @@ MATH/SCIENCE FORMATTING:
       const usage = response.usage;
       if (usage) {
         console.log(`  [tokens] OCR-process: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+        if (this._userId) deductTokens(this._userId, usage.total_tokens);
       }
 
       const jsonText = response.choices[0].message.content.trim();
@@ -273,7 +276,8 @@ MATH/SCIENCE FORMATTING:
   /**
    * Complete OCR pipeline: Extract, merge across pages, and normalize
    */
-  async extractQuestions(imagePaths, learningScope) {
+  async extractQuestions(imagePaths, learningScope, userId = null) {
+    this._userId = userId;
     const allQuestions = [];
 
     for (let i = 0; i < imagePaths.length; i++) {

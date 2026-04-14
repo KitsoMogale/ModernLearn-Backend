@@ -151,7 +151,8 @@ exports.extractQuestions = async (req, res) => {
     // Extract questions using OCR service
     const extractedQuestions = await ocrService.extractQuestions(
       imagePaths,
-      session.learningScope
+      session.learningScope,
+      req.user.mongoId
     );
 
     // Update session

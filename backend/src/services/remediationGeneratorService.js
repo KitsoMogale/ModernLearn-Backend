@@ -2,6 +2,7 @@ const OpenAI = require('openai');
 const RemediationUnit = require('../models/RemediationUnit');
 const FailureSignal = require('../models/FailureSignal');
 const curriculumService = require('./curriculumService');
+const deductTokens = require('../utils/deductTokens');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -16,6 +17,7 @@ const CATEGORY_TO_GROUP = RemediationUnit.CATEGORY_TO_GROUP;
 class RemediationGeneratorService {
 
   async generateRemediationPlan(session) {
+    this._userId = session.userId;
     try {
       const failures = await FailureSignal.getConfirmed(session._id);
 
@@ -70,6 +72,7 @@ class RemediationGeneratorService {
     const usage = response.usage;
     if (usage) {
       console.log(`  [tokens] remediation-gen(${group}): prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+      if (this._userId) deductTokens(this._userId, usage.total_tokens);
     }
 
     const data = JSON.parse(response.choices[0].message.content.trim());
@@ -366,7 +369,8 @@ GUIDELINES:
 
   // ─── Utility methods (unchanged) ─────────────────────────────────
 
-  async generateMoreProblems(remediationUnit, count = 5) {
+  async generateMoreProblems(remediationUnit, count = 5, userId = null) {
+    this._userId = userId;
     const prompt = `Generate ${count} additional practice problems for:
 
 Title: ${remediationUnit.title}
@@ -399,6 +403,7 @@ Make problems progressively harder. Use LaTeX in $ delimiters for math expressio
     const usage = response.usage;
     if (usage) {
       console.log(`  [tokens] more-problems: prompt=${usage.prompt_tokens} completion=${usage.completion_tokens} total=${usage.total_tokens}`);
+      if (this._userId) deductTokens(this._userId, usage.total_tokens);
     }
 
     const data = JSON.parse(response.choices[0].message.content.trim());
@@ -409,7 +414,8 @@ Make problems progressively harder. Use LaTeX in $ delimiters for math expressio
     return data.problems;
   }
 
-  async checkAnswer(problem, studentAnswer) {
+  async checkAnswer(problem, studentAnswer, userId = null) {
+    this._userId = userId;
     const prompt = `Check if this answer is correct:
 
 Question: ${problem.question}
@@ -433,12 +439,14 @@ Return JSON:
     const usage1 = response.usage;
     if (usage1) {
       console.log(`  [tokens] check-answer: prompt=${usage1.prompt_tokens} completion=${usage1.completion_tokens} total=${usage1.total_tokens}`);
+      if (this._userId) deductTokens(this._userId, usage1.total_tokens);
     }
 
     return JSON.parse(response.choices[0].message.content.trim());
   }
 
-  async getHint(problem, attemptNumber = 1) {
+  async getHint(problem, attemptNumber = 1, userId = null) {
+    this._userId = userId;
     const prompt = `Provide a hint for this problem (attempt #${attemptNumber}):
 
 Question: ${problem.question}
@@ -461,6 +469,7 @@ Return JSON:
     const usage2 = response.usage;
     if (usage2) {
       console.log(`  [tokens] get-hint: prompt=${usage2.prompt_tokens} completion=${usage2.completion_tokens} total=${usage2.total_tokens}`);
+      if (this._userId) deductTokens(this._userId, usage2.total_tokens);
     }
 
     return JSON.parse(response.choices[0].message.content.trim());

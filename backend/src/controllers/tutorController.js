@@ -2,6 +2,7 @@ const OpenAI = require('openai');
 const TutorConversation = require('../models/TutorConversation');
 const Session = require('../models/Session');
 const User = require('../models/User');
+const deductTokens = require('../utils/deductTokens');
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -180,16 +181,18 @@ exports.chat = async (req, res) => {
       'X-Accel-Buffering': 'no', // for nginx/Render proxy
     });
 
-    // Stream from OpenAI
+    // Stream from OpenAI (stream_options.include_usage gives us actual token count at end)
     const stream = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: openaiMessages,
       stream: true,
+      stream_options: { include_usage: true },
       max_tokens: 1000,
       temperature: 0.7,
     });
 
     let assistantContent = '';
+    let actualTokensUsed = 0;
 
     for await (const chunk of stream) {
       const delta = chunk.choices?.[0]?.delta?.content;
@@ -197,36 +200,22 @@ exports.chat = async (req, res) => {
         assistantContent += delta;
         res.write(`data: ${JSON.stringify({ type: 'delta', content: delta })}\n\n`);
       }
-
-      // Check if stream finished
-      if (chunk.choices?.[0]?.finish_reason) {
-        break;
+      // usage arrives in the final chunk when include_usage is true
+      if (chunk.usage?.total_tokens) {
+        actualTokensUsed = chunk.usage.total_tokens;
       }
     }
 
-    // Persist both messages
+    // Persist both messages and deduct actual tokens
     conversation.messages.push(
       { role: 'user', content: userMessage },
       { role: 'assistant', content: assistantContent },
     );
 
-    // Estimate tokens used (rough: 1 token ≈ 4 chars) and deduct from balance
-    const estimatedTokens = Math.ceil((userMessage.length + assistantContent.length) / 4);
-    const [updatedUser] = await Promise.all([
-      User.findByIdAndUpdate(
-        userId,
-        {
-          $inc: {
-            tokenBalance: -estimatedTokens,
-            totalTokensUsed: estimatedTokens,
-          },
-        },
-        { new: true }
-      ).select('tokenBalance'),
+    const [newBalance] = await Promise.all([
+      deductTokens(userId, actualTokensUsed || Math.ceil((userMessage.length + assistantContent.length) / 4)),
       conversation.save(),
     ]);
-
-    const newBalance = Math.max(0, updatedUser?.tokenBalance ?? 0);
 
     // Send done event with updated balance so client can update UI
     res.write(`data: ${JSON.stringify({ type: 'done', messageId: conversation.messages.length, tokenBalance: newBalance })}\n\n`);
