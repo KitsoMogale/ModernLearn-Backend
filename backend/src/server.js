@@ -12,6 +12,9 @@ const PORT = process.env.PORT || 3000;
 
 // Account deletion page — needs its own CSP to allow Firebase CDN scripts
 // Mount before helmet() so the global CSP doesn't block it
+const privacyPolicyRoutes = require('./routes/privacyPolicy');
+app.use('/privacy-policy', privacyPolicyRoutes);
+
 const accountDeletionRoutes = require('./routes/accountDeletion');
 app.use('/account/delete', helmet({
   contentSecurityPolicy: {
