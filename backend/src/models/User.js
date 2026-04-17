@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema({
   },
   tokenBalance: {
     type: Number,
-    default: 20000,  // free starter tokens for new users
+    default: 40000,  // free starter tokens for new users
     min: 0,
   },
   totalTokensUsed: {
